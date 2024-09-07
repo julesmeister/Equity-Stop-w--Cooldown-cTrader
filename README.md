@@ -8,3 +8,4 @@ New:
   - Allows to select how long cooldown would last.
   - Automatically closes active trades while cooling down to prevent further trades.
   - Is only triggered when equity stop of either loss or target.
+  - The cooldown timer will persist even if you closed the app. It will count the timer correctly when you reopened the app.
