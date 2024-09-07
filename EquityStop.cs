@@ -44,6 +44,11 @@ namespace cAlgo.Plugins
             RestoreCooldownState();
         }
 
+        protected override void OnStop()
+        {
+            SaveState(tradingResumptionTime, GetCooldownPeriod());
+        }
+
         private void AddControls()
         {
             var block = Asp.SymbolTab.AddBlock("Equity Stop Plugin");
@@ -56,6 +61,10 @@ namespace cAlgo.Plugins
 
             // Create a Grid to hold the TextBlock and ComboBox
             var cashOrPercGrid = new Grid { Margin = new Thickness(10) };
+            var dropDownStyle = new Style();
+            dropDownStyle.Set(ControlProperty.BackgroundColor, Color.FromArgb(41, 41, 41), ControlState.DarkTheme);
+            dropDownStyle.Set(ControlProperty.BackgroundColor, Color.FromArgb(41, 41, 41), ControlState.LightTheme);
+            cashOrPercGrid.Style = dropDownStyle;
             cashOrPercGrid.AddColumn().SetWidthInStars(1); // Column for TextBlock
             cashOrPercGrid.AddColumn().SetWidthToAuto(); // Column for ComboBox
 
@@ -145,8 +154,6 @@ namespace cAlgo.Plugins
             cooldownGrid.AddChild(cooldownPeriodDropdown, 0, 1);
 
             rootStackPanel.AddChild(cooldownGrid);
-
-
 
             block.Child = rootStackPanel;
         }
@@ -252,6 +259,7 @@ namespace cAlgo.Plugins
         {
             if (isCooldownInProgress)
             {
+                countdownText.ForegroundColor = Color.Red;
                 if (DateTime.UtcNow < tradingResumptionTime)
                 {
                     TimeSpan remainingTime = tradingResumptionTime - DateTime.UtcNow;
@@ -267,6 +275,8 @@ namespace cAlgo.Plugins
                     lastTriggeredCondition = string.Empty; // Reset the condition tracker
                     // Update equity to the current value after cooldown
                     equity = Account.Equity;
+                    // Reset countdown text color to default after cooldown ends
+                    countdownText.ForegroundColor = Color.White;
                 }
                 // Prevent and close all open positions while still in cooldown
                 foreach (var pos in Positions)
