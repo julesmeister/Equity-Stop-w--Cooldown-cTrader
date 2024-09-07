@@ -1,0 +1,49 @@
+{
+  "format": 1,
+  "restore": {
+    "c:\\Users\\User\\Documents\\cAlgo\\Sources\\Plugins\\EquityStop\\EquityStop\\Equity-Stop-w--Cooldown-cTrader\\EquityStop.csproj": {}
+  },
+  "projects": {
+    "c:\\Users\\User\\Documents\\cAlgo\\Sources\\Plugins\\EquityStop\\EquityStop\\Equity-Stop-w--Cooldown-cTrader\\EquityStop.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "c:\\Users\\User\\Documents\\cAlgo\\Sources\\Plugins\\EquityStop\\EquityStop\\Equity-Stop-w--Cooldown-cTrader\\EquityStop.csproj",
+        "projectName": "EquityStop",
+        "projectPath": "c:\\Users\\User\\Documents\\cAlgo\\Sources\\Plugins\\EquityStop\\EquityStop\\Equity-Stop-w--Cooldown-cTrader\\EquityStop.csproj",
+        "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+        "outputPath": "c:\\Users\\User\\Documents\\cAlgo\\Sources\\Plugins\\EquityStop\\EquityStop\\Equity-Stop-w--Cooldown-cTrader\\obj\\",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net6.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net6.0": {
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net6.0": {
+          "dependencies": {
+            "cTrader.Automate": {
+              "target": "Package",
+              "version": "[*, )"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.426\\RuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "JY4wdGLJ5vi4vY04zO1ZyXmM2kptwmT+8PD/zNhzXeSbOPrNcU9gCi+ft+YeVeF1bkcvOUIGaMf10+zHvfTtTw==",
+  "success": true,
+  "projectFilePath": "c:\\Users\\User\\Documents\\cAlgo\\Sources\\Plugins\\EquityStop\\EquityStop\\Equity-Stop-w--Cooldown-cTrader\\EquityStop.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\User\\.nuget\\packages\\ctrader.automate\\1.0.9\\ctrader.automate.1.0.9.nupkg.sha512"
+  ],
+  "logs": []
+}

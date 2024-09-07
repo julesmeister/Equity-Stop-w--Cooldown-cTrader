@@ -1,0 +1,119 @@
+{
+  "version": 3,
+  "targets": {
+    ".NETCoreApp,Version=v6.0": {
+      "cTrader.Automate/1.0.9": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/cAlgo.API.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/cAlgo.API.dll": {}
+        },
+        "build": {
+          "build/cTrader.Automate.props": {},
+          "build/cTrader.Automate.targets": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "cTrader.Automate/1.0.9": {
+      "sha512": "F2rQGQi6h9OVGfd4ePfa8nr1qU+WOqTFYnpm3hr6E+ibtgUamuzTelupnxNuPCBbuBHuxyvrCL+4emiOfdAIRg==",
+      "type": "package",
+      "path": "ctrader.automate/1.0.9",
+      "hasTools": true,
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "build/cTrader.Automate.props",
+        "build/cTrader.Automate.targets",
+        "ctrader.automate.1.0.9.nupkg.sha512",
+        "ctrader.automate.nuspec",
+        "eula.md",
+        "icon.png",
+        "lib/net40/cAlgo.API.dll",
+        "lib/net40/cAlgo.API.xml",
+        "lib/net6.0/cAlgo.API.dll",
+        "lib/net6.0/cAlgo.API.xml",
+        "tools/net472/Core.AlgoFormat.Compose.Reflection.dll",
+        "tools/net472/Core.AlgoFormat.Writer.dll",
+        "tools/net472/Core.AlgoFormat.dll",
+        "tools/net472/Core.Domain.Primitives.dll",
+        "tools/net472/Newtonsoft.Json.dll",
+        "tools/net472/System.Buffers.dll",
+        "tools/net472/System.Collections.Immutable.dll",
+        "tools/net472/System.Memory.dll",
+        "tools/net472/System.Numerics.Vectors.dll",
+        "tools/net472/System.Reflection.Metadata.dll",
+        "tools/net472/System.Reflection.MetadataLoadContext.dll",
+        "tools/net472/System.Runtime.CompilerServices.Unsafe.dll",
+        "tools/net472/cTrader.Automate.Sdk.Tasks.dll",
+        "tools/net6.0/Core.AlgoFormat.Compose.Reflection.dll",
+        "tools/net6.0/Core.AlgoFormat.Writer.dll",
+        "tools/net6.0/Core.AlgoFormat.dll",
+        "tools/net6.0/Core.Domain.Primitives.dll",
+        "tools/net6.0/Microsoft.Win32.SystemEvents.dll",
+        "tools/net6.0/Newtonsoft.Json.dll",
+        "tools/net6.0/System.Drawing.Common.dll",
+        "tools/net6.0/System.Reflection.MetadataLoadContext.dll",
+        "tools/net6.0/System.Security.Permissions.dll",
+        "tools/net6.0/System.Windows.Extensions.dll",
+        "tools/net6.0/cTrader.Automate.Sdk.Tasks.dll",
+        "tools/net6.0/runtimes/unix/lib/net6.0/System.Drawing.Common.dll",
+        "tools/net6.0/runtimes/win/lib/net6.0/Microsoft.Win32.SystemEvents.dll",
+        "tools/net6.0/runtimes/win/lib/net6.0/System.Drawing.Common.dll",
+        "tools/net6.0/runtimes/win/lib/net6.0/System.Windows.Extensions.dll"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    ".NETCoreApp,Version=v6.0": [
+      "cTrader.Automate >= *"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\User\\.nuget\\packages\\": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "c:\\Users\\User\\Documents\\cAlgo\\Sources\\Plugins\\EquityStop\\EquityStop\\Equity-Stop-w--Cooldown-cTrader\\EquityStop.csproj",
+      "projectName": "EquityStop",
+      "projectPath": "c:\\Users\\User\\Documents\\cAlgo\\Sources\\Plugins\\EquityStop\\EquityStop\\Equity-Stop-w--Cooldown-cTrader\\EquityStop.csproj",
+      "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+      "outputPath": "c:\\Users\\User\\Documents\\cAlgo\\Sources\\Plugins\\EquityStop\\EquityStop\\Equity-Stop-w--Cooldown-cTrader\\obj\\",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config"
+      ],
+      "originalTargetFrameworks": [
+        "net6.0"
+      ],
+      "sources": {
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net6.0": {
+          "projectReferences": {}
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      }
+    },
+    "frameworks": {
+      "net6.0": {
+        "dependencies": {
+          "cTrader.Automate": {
+            "target": "Package",
+            "version": "[*, )"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.426\\RuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}
