@@ -17,6 +17,7 @@ namespace cAlgo.Plugins
         CheckBox maxProfitOn;
         TextBox maxProfit;
         ComboBox cooldownPeriodDropdown;
+        ComboBox triggerComboBox;
 
         private DateTime tradingResumptionTime;
         private bool isCooldownInProgress = false;
@@ -38,6 +39,7 @@ namespace cAlgo.Plugins
             viewModel.MaxProfitValue = 100;
             // Set default cooldown to 2 minutes
             cooldownPeriodDropdown.SelectedItem = "2 minutes";
+            triggerComboBox.SelectedItem = "Per Session"; // Default trigger option
             Timer.Start(TimeSpan.FromSeconds(1));
             tradingResumptionTime = DateTime.UtcNow; // Initialize to current time
             UpdateControlsState(true); // Ensure controls are enabled on start
@@ -55,28 +57,31 @@ namespace cAlgo.Plugins
             block.IsExpanded = true;
             block.IsDetachable = false;
             block.Index = 1;
-            block.Height = 200;
+            block.Height = 220;
 
             var rootStackPanel = new StackPanel { Margin = new Thickness(10) };
 
-            // Create a Grid to hold the TextBlock and ComboBox
-            var cashOrPercGrid = new Grid { Margin = new Thickness(10) };
+            // Set the desired width for both ComboBoxes
+            double comboBoxWidth = 80;
+
+            // Create a Grid to hold the TextBlock and ComboBox for Cash or Percent selection
+            var cashOrPercGrid = new Grid { Margin = new Thickness(10, 10, 10, 0) };
             var dropDownStyle = new Style();
             dropDownStyle.Set(ControlProperty.BackgroundColor, Color.FromArgb(41, 41, 41), ControlState.DarkTheme);
             dropDownStyle.Set(ControlProperty.BackgroundColor, Color.FromArgb(41, 41, 41), ControlState.LightTheme);
             cashOrPercGrid.Style = dropDownStyle;
             cashOrPercGrid.AddColumn().SetWidthInStars(1); // Column for TextBlock
-            cashOrPercGrid.AddColumn().SetWidthToAuto(); // Column for ComboBox
+            cashOrPercGrid.AddColumn().SetWidthToAuto();   // Column for ComboBox
 
-            // Add the TextBlock
+            // Add the TextBlock for Cash or Percent selection
             var textBlock = new TextBlock { Text = "Choose Between Cash and Percent:", Margin = new Thickness(0, 10, 10, 0) };
             cashOrPercGrid.AddChild(textBlock, 0, 0); // First column
 
-            // Add the ComboBox
+            // Add the ComboBox for Cash or Percent selection
             cashOrPerc = new ComboBox
             {
                 Margin = new Thickness(10, 10, 0, 10),
-                Width = 70 // Set the width of the ComboBox here
+                Width = comboBoxWidth // Set the width of the ComboBox
             };
             cashOrPerc.AddItem("Cash");
             cashOrPerc.AddItem("Percent");
@@ -84,6 +89,29 @@ namespace cAlgo.Plugins
 
             // Add the Grid to the StackPanel
             rootStackPanel.AddChild(cashOrPercGrid);
+
+            // Create a Grid to hold the TextBlock and ComboBox for Trigger selection
+            var triggerGrid = new Grid { Margin = new Thickness(10, 0, 10, 0) };
+            triggerGrid.AddColumn().SetWidthInStars(1); // Column for TextBlock
+            triggerGrid.AddColumn().SetWidthToAuto(); // Column for ComboBox
+
+            // Add the TextBlock for Trigger selection
+            var triggerLabel = new TextBlock { Text = "Trigger:", Margin = new Thickness(0, 0, 10, 0) };
+            triggerGrid.AddChild(triggerLabel, 0, 0);
+
+            // Add the ComboBox for Trigger selection
+            triggerComboBox = new ComboBox
+            {
+                Margin = new Thickness(10, 0, 0, 10),
+                Width = comboBoxWidth // Set the width of the ComboBox
+            };
+            triggerComboBox.AddItem("Per Trade");
+            triggerComboBox.AddItem("Per Session");
+            triggerGrid.AddChild(triggerComboBox, 0, 1); // Second column
+
+            // Add the Grid to the StackPanel
+            rootStackPanel.AddChild(triggerGrid);
+
 
             var equityStopLossGrid = new Grid { Margin = new Thickness(10) };
             equityStopLossGrid.AddColumn().SetWidthToAuto();  // Column for the checkbox
@@ -136,9 +164,9 @@ namespace cAlgo.Plugins
 
             var cooldownGrid = new Grid { Margin = new Thickness(10) };
             cooldownGrid.AddColumn().SetWidthInStars(1); // For the dropdown
-            cooldownGrid.AddColumn().SetWidthInStars(1); // For the countdown text
+            cooldownGrid.AddColumn().SetWidthToAuto(); // For the countdown text
 
-            cooldownPeriodDropdown = new ComboBox { Margin = new Thickness(10, 10, 0, 10) };
+            cooldownPeriodDropdown = new ComboBox { Margin = new Thickness(10, 10, 0, 10), Width = comboBoxWidth };
             cooldownPeriodDropdown.AddItem("2 minutes");
             cooldownPeriodDropdown.AddItem("2 hours");
             cooldownPeriodDropdown.AddItem("5 hours");
@@ -167,6 +195,7 @@ namespace cAlgo.Plugins
             LocalStorage.SetString("MaxProfitOn", maxProfitOn.IsChecked.ToString());
             LocalStorage.SetString("MaxProfit", maxProfit.Text);
             LocalStorage.SetString("CooldownPeriodDropdown", cooldownPeriodDropdown.SelectedItem.ToString());
+            LocalStorage.SetString("TriggerOption", triggerComboBox.SelectedItem.ToString()); // Save trigger option
         }
 
         private void RestoreCooldownState()
@@ -178,6 +207,7 @@ namespace cAlgo.Plugins
             string storedMaxProfitOn = LocalStorage.GetString("MaxProfitOn");
             string storedMaxProfit = LocalStorage.GetString("MaxProfit");
             string storedCooldownPeriod = LocalStorage.GetString("CooldownPeriodDropdown");
+            string storedTriggerOption = LocalStorage.GetString("TriggerOption");
             if (!string.IsNullOrEmpty(storedMaxDDOn))
                 maxDDOn.IsChecked = bool.Parse(storedMaxDDOn);
 
@@ -192,6 +222,9 @@ namespace cAlgo.Plugins
 
             if (!string.IsNullOrEmpty(storedCooldownPeriod))
                 cooldownPeriodDropdown.SelectedItem = storedCooldownPeriod;
+
+            if (!string.IsNullOrEmpty(storedTriggerOption))
+                triggerComboBox.SelectedItem = storedTriggerOption;
 
             if (!string.IsNullOrEmpty(storedTimestamp) && !string.IsNullOrEmpty(storedPeriod))
             {
@@ -274,7 +307,10 @@ namespace cAlgo.Plugins
                     UpdateControlsState(true); // Enable controls after cooldown
                     lastTriggeredCondition = string.Empty; // Reset the condition tracker
                     // Update equity to the current value after cooldown
-                    equity = Account.Equity;
+                    if (triggerComboBox.SelectedItem == "Per Trade")
+                    {
+                        equity = Account.Equity;
+                    }
                     // Reset countdown text color to default after cooldown ends
                     countdownText.ForegroundColor = Color.White;
                 }
