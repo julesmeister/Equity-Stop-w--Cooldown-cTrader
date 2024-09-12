@@ -31,15 +31,15 @@ namespace cAlgo.Plugins
         {
             AddControls();
             viewModel.Changed += viewModel_Changed;
-            // Subscribe to the TextChanged event for maxDD and maxProfit
-            maxDD.TextChanged += (s) => maxDDOn.IsChecked = false;
-            maxProfit.TextChanged += (s) => maxProfitOn.IsChecked = false;
             equity = Account.Equity;
             cashOrPerc.SelectedItem = "Cash";
             maxDDOn.IsChecked = true;
             viewModel.MaxDDValue = 100;
             maxProfitOn.IsChecked = true;
             viewModel.MaxProfitValue = 100;
+            // Subscribe to the TextChanged event for maxDD and maxProfit
+            maxDD.TextChanged += (s) => maxDDOn.IsChecked = false;
+            maxProfit.TextChanged += (s) => maxProfitOn.IsChecked = false;
             // Set default cooldown to 2 minutes
             cooldownPeriodDropdown.SelectedItem = "2 minutes";
             triggerComboBox.SelectedItem = "Per Session"; // Default trigger option
