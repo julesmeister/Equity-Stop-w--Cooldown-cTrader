@@ -31,6 +31,9 @@ namespace cAlgo.Plugins
         {
             AddControls();
             viewModel.Changed += viewModel_Changed;
+            // Subscribe to the TextChanged event for maxDD and maxProfit
+            maxDD.TextChanged += (s) => maxDDOn.IsChecked = false;
+            maxProfit.TextChanged += (s) => maxProfitOn.IsChecked = false;
             equity = Account.Equity;
             cashOrPerc.SelectedItem = "Cash";
             maxDDOn.IsChecked = true;
@@ -45,9 +48,8 @@ namespace cAlgo.Plugins
             UpdateControlsState(true); // Ensure controls are enabled on start
             RestoreCooldownState();
         }
-
-        protected override void OnStop()
-        {
+        
+        protected override void OnStop() {
             SaveState(tradingResumptionTime, GetCooldownPeriod());
         }
 
@@ -63,7 +65,7 @@ namespace cAlgo.Plugins
 
             // Set the desired width for both ComboBoxes
             double comboBoxWidth = 80;
-
+            
             // Create a Grid to hold the TextBlock and ComboBox for Cash or Percent selection
             var cashOrPercGrid = new Grid { Margin = new Thickness(10, 10, 10, 0) };
             var dropDownStyle = new Style();
@@ -72,11 +74,11 @@ namespace cAlgo.Plugins
             cashOrPercGrid.Style = dropDownStyle;
             cashOrPercGrid.AddColumn().SetWidthInStars(1); // Column for TextBlock
             cashOrPercGrid.AddColumn().SetWidthToAuto();   // Column for ComboBox
-
+            
             // Add the TextBlock for Cash or Percent selection
             var textBlock = new TextBlock { Text = "Choose Between Cash and Percent:", Margin = new Thickness(0, 10, 10, 0) };
             cashOrPercGrid.AddChild(textBlock, 0, 0); // First column
-
+            
             // Add the ComboBox for Cash or Percent selection
             cashOrPerc = new ComboBox
             {
@@ -86,19 +88,19 @@ namespace cAlgo.Plugins
             cashOrPerc.AddItem("Cash");
             cashOrPerc.AddItem("Percent");
             cashOrPercGrid.AddChild(cashOrPerc, 0, 1); // Second column
-
+            
             // Add the Grid to the StackPanel
             rootStackPanel.AddChild(cashOrPercGrid);
-
+            
             // Create a Grid to hold the TextBlock and ComboBox for Trigger selection
             var triggerGrid = new Grid { Margin = new Thickness(10, 0, 10, 0) };
             triggerGrid.AddColumn().SetWidthInStars(1); // Column for TextBlock
             triggerGrid.AddColumn().SetWidthToAuto(); // Column for ComboBox
-
+            
             // Add the TextBlock for Trigger selection
             var triggerLabel = new TextBlock { Text = "Trigger:", Margin = new Thickness(0, 0, 10, 0) };
             triggerGrid.AddChild(triggerLabel, 0, 0);
-
+            
             // Add the ComboBox for Trigger selection
             triggerComboBox = new ComboBox
             {
@@ -108,7 +110,7 @@ namespace cAlgo.Plugins
             triggerComboBox.AddItem("Per Trade");
             triggerComboBox.AddItem("Per Session");
             triggerGrid.AddChild(triggerComboBox, 0, 1); // Second column
-
+            
             // Add the Grid to the StackPanel
             rootStackPanel.AddChild(triggerGrid);
 
@@ -117,10 +119,10 @@ namespace cAlgo.Plugins
             equityStopLossGrid.AddColumn().SetWidthToAuto();  // Column for the checkbox
             equityStopLossGrid.AddColumn().SetWidthInStars(1);  // Column for the TextBlock
             equityStopLossGrid.AddColumn().SetWidthToAuto();  // Column for the textbox
-
+            
             var equityStopLossLabel = new TextBlock { Text = "Equity Stop (Loss):", Margin = new Thickness(0, 2, 10, 0) };
             equityStopLossGrid.AddChild(equityStopLossLabel, 0, 0);
-
+            
             maxDD = new TextBox { IsReadOnly = false, TextAlignment = TextAlignment.Right };
             var maxDDStyle = new Style();
             maxDDStyle.Set(ControlProperty.BackgroundColor, Color.FromArgb(26, 26, 26), ControlState.DarkTheme);
@@ -131,7 +133,7 @@ namespace cAlgo.Plugins
             equityStopLossGrid.AddChild(maxDD, 0, 1);
             maxDDOn = new CheckBox { Margin = new Thickness(10, 0, 0, 0) };
             equityStopLossGrid.AddChild(maxDDOn, 0, 2);
-
+            
             rootStackPanel.AddChild(equityStopLossGrid);
 
             // Creating a grid for "Equity Stop (Target)" with a similar layout as "Equity Stop (Loss)"
@@ -139,11 +141,11 @@ namespace cAlgo.Plugins
             equityStopTargetGrid.AddColumn().SetWidthToAuto();  // Column for the checkbox
             equityStopTargetGrid.AddColumn().SetWidthInStars(1);  // Column for the TextBlock
             equityStopTargetGrid.AddColumn().SetWidthToAuto();  // Column for the textbox
-
+            
             // Adding a label for "Equity Stop (Target)"
             var equityStopTargetLabel = new TextBlock { Text = "Equity Stop (Target):", Margin = new Thickness(0, 2, 10, 0) };
             equityStopTargetGrid.AddChild(equityStopTargetLabel, 0, 0);
-
+            
             // Adding a TextBox for the target value
             maxProfit = new TextBox { IsReadOnly = false, TextAlignment = TextAlignment.Right };
             var maxProfitStyle = new Style();
@@ -153,18 +155,14 @@ namespace cAlgo.Plugins
             maxProfitStyle.Set(ControlProperty.ForegroundColor, Color.FromArgb(55, 56, 57), ControlState.LightTheme);
             maxProfit.Style = maxProfitStyle;
             equityStopTargetGrid.AddChild(maxProfit, 0, 1);
-
+            
             // Adding the CheckBox for enabling/disabling the equity stop target
             maxProfitOn = new CheckBox { Margin = new Thickness(10, 0, 0, 0) };
             equityStopTargetGrid.AddChild(maxProfitOn, 0, 2);
-
+            
             // Adding the grid to the root stack panel
             rootStackPanel.AddChild(equityStopTargetGrid);
-
-            // TextCombo Listeners
-            maxDD.TextChanged += MaxDD_TextChanged;
-            maxProfit.TextChanged += MaxProfit_TextChanged;
-
+            
             var cooldownGrid = new Grid { Margin = new Thickness(10) };
             cooldownGrid.AddColumn().SetWidthInStars(1); // For the dropdown
             cooldownGrid.AddColumn().SetWidthToAuto(); // For the countdown text
@@ -174,7 +172,7 @@ namespace cAlgo.Plugins
             cooldownPeriodDropdown.AddItem("2 hours");
             cooldownPeriodDropdown.AddItem("5 hours");
             cooldownPeriodDropdown.AddItem("12 hours");
-
+            
             countdownText = new TextBlock
             {
                 Text = "Cooldown: 00:00:00",
@@ -183,28 +181,12 @@ namespace cAlgo.Plugins
             };
             cooldownGrid.AddChild(countdownText, 0, 0);
             cooldownGrid.AddChild(cooldownPeriodDropdown, 0, 1);
-
+        
             rootStackPanel.AddChild(cooldownGrid);
-
+            
             block.Child = rootStackPanel;
         }
-
-        private void MaxDD_TextChanged(TextChangedEventArgs args)
-        {
-            if (maxDDOn.IsChecked == true)
-            {
-                maxDDOn.IsChecked = false;
-            }
-        }
-
-        private void MaxProfit_TextChanged(TextChangedEventArgs args)
-        {
-            if (maxProfitOn.IsChecked == true)
-            {
-                maxProfitOn.IsChecked = false;
-            }
-        }
-
+                
         private void SaveState(DateTime timestamp, TimeSpan cooldownPeriod)
         {
             LocalStorage.SetString(CooldownTimestampKey, timestamp.ToString("o"));
@@ -229,55 +211,55 @@ namespace cAlgo.Plugins
             string storedTriggerOption = LocalStorage.GetString("TriggerOption");
             if (!string.IsNullOrEmpty(storedMaxDDOn))
                 maxDDOn.IsChecked = bool.Parse(storedMaxDDOn);
-
+            
             if (!string.IsNullOrEmpty(storedMaxDD))
                 maxDD.Text = storedMaxDD;
-
+        
             if (!string.IsNullOrEmpty(storedMaxProfitOn))
                 maxProfitOn.IsChecked = bool.Parse(storedMaxProfitOn);
-
+            
             if (!string.IsNullOrEmpty(storedMaxProfit))
                 maxProfit.Text = storedMaxProfit;
-
+        
             if (!string.IsNullOrEmpty(storedCooldownPeriod))
                 cooldownPeriodDropdown.SelectedItem = storedCooldownPeriod;
-
+                
             if (!string.IsNullOrEmpty(storedTriggerOption))
                 triggerComboBox.SelectedItem = storedTriggerOption;
-
+        
             if (!string.IsNullOrEmpty(storedTimestamp) && !string.IsNullOrEmpty(storedPeriod))
+    {
+        DateTime timestamp;
+        TimeSpan period;
+
+        if (DateTime.TryParse(storedTimestamp, null, System.Globalization.DateTimeStyles.RoundtripKind, out timestamp) &&
+            TimeSpan.TryParse(storedPeriod, out period))
             {
-                DateTime timestamp;
-                TimeSpan period;
-
-                if (DateTime.TryParse(storedTimestamp, null, System.Globalization.DateTimeStyles.RoundtripKind, out timestamp) &&
-                    TimeSpan.TryParse(storedPeriod, out period))
+                // Calculate the expected resumption time based on the stored timestamp and period
+                DateTime expectedResumptionTime = timestamp;
+    
+                // Calculate the remaining time
+                TimeSpan remainingTime = expectedResumptionTime - DateTime.UtcNow;
+    
+                if (remainingTime > TimeSpan.Zero)
                 {
-                    // Calculate the expected resumption time based on the stored timestamp and period
-                    DateTime expectedResumptionTime = timestamp;
-
-                    // Calculate the remaining time
-                    TimeSpan remainingTime = expectedResumptionTime - DateTime.UtcNow;
-
-                    if (remainingTime > TimeSpan.Zero)
-                    {
-                        tradingResumptionTime = expectedResumptionTime;
-                        isCooldownInProgress = true;
-                    }
-                    else
-                    {
-                        // If the cooldown period has already passed
-                        LocalStorage.SetString(CooldownTimestampKey, string.Empty);
-                        LocalStorage.SetString(CooldownPeriodKey, string.Empty);
-                    }
+                    tradingResumptionTime = expectedResumptionTime;
+                    isCooldownInProgress = true;
                 }
                 else
                 {
-                    // In case of any parsing errors, clear the stored state
+                    // If the cooldown period has already passed
                     LocalStorage.SetString(CooldownTimestampKey, string.Empty);
                     LocalStorage.SetString(CooldownPeriodKey, string.Empty);
                 }
             }
+            else
+            {
+                // In case of any parsing errors, clear the stored state
+                LocalStorage.SetString(CooldownTimestampKey, string.Empty);
+                LocalStorage.SetString(CooldownPeriodKey, string.Empty);
+            }
+        }
         }
 
 
@@ -347,11 +329,11 @@ namespace cAlgo.Plugins
                 }
                 return; // Exit to avoid processing normal trading logic during cooldown
             }
-
+        
             // Normal trading logic
             bool triggerCooldown = false;
             string currentConditionTriggered = string.Empty;
-
+            
             if (cashOrPerc.SelectedItem == "Cash")
             {
                 if (maxDDOn.IsChecked == true && Account.Equity <= equity - double.Parse(maxDD.Text))
@@ -369,7 +351,7 @@ namespace cAlgo.Plugins
             {
                 double minEquity = equity * (1 - double.Parse(maxDD.Text) / 100);
                 double maxEquity = equity * (1 + double.Parse(maxProfit.Text) / 100);
-
+        
                 if (maxDDOn.IsChecked == true && Account.Equity <= minEquity)
                 {
                     triggerCooldown = true;
@@ -381,7 +363,7 @@ namespace cAlgo.Plugins
                     currentConditionTriggered = "maxProfit";
                 }
             }
-
+        
             if (triggerCooldown && currentConditionTriggered != lastTriggeredCondition)
             {
                 StopTradingAndSetCooldown();
@@ -402,7 +384,7 @@ namespace cAlgo.Plugins
             {
                 return; // Exit if trading is already stopped
             }
-
+            
             foreach (var pos in Positions)
             {
                 ClosePosition(pos);
