@@ -161,6 +161,9 @@ namespace cAlgo.Plugins
             // Adding the grid to the root stack panel
             rootStackPanel.AddChild(equityStopTargetGrid);
 
+            // TextCombo Listeners
+            maxDD.TextChanged += MaxDD_TextChanged;
+            maxProfit.TextChanged += MaxProfit_TextChanged;
 
             var cooldownGrid = new Grid { Margin = new Thickness(10) };
             cooldownGrid.AddColumn().SetWidthInStars(1); // For the dropdown
@@ -184,6 +187,22 @@ namespace cAlgo.Plugins
             rootStackPanel.AddChild(cooldownGrid);
 
             block.Child = rootStackPanel;
+        }
+
+        private void MaxDD_TextChanged(TextChangedEventArgs args)
+        {
+            if (maxDDOn.IsChecked == true)
+            {
+                maxDDOn.IsChecked = false;
+            }
+        }
+
+        private void MaxProfit_TextChanged(TextChangedEventArgs args)
+        {
+            if (maxProfitOn.IsChecked == true)
+            {
+                maxProfitOn.IsChecked = false;
+            }
         }
 
         private void SaveState(DateTime timestamp, TimeSpan cooldownPeriod)
