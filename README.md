@@ -15,6 +15,7 @@ New:
 - Trigger (Both triggers cooldown)
   - Per Trade
     - Equity stops will be triggered per trade. If your Equity Stop input is 20, and your profit goes -20, you will get stopped out.
+    - There is a last chance. Once you get stopped out on your first equity stop, you can choose to retry again. But when you hit the threshold of the last chance, there will be no more retries for the session.
     - Scenario:
       - You set your Equity Stop to 20. You place a trade aiming for a profit, but the market moves against you, and you experience a loss of 25 on this single trade. Because this single trade loss exceeds your Equity Stop input of 20, the system halts trading and initiates a cooldown period. During this cooldown, no new trades can be executed, regardless of the outcome of other trades or any accumulated losses. Trading can resume after cooldown.
   - Per Session

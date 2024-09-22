@@ -1,14 +1,18 @@
 {
   "version": 3,
   "targets": {
-    ".NETCoreApp,Version=v6.0": {
+    "net6.0": {
       "cTrader.Automate/1.0.9": {
         "type": "package",
         "compile": {
-          "lib/net6.0/cAlgo.API.dll": {}
+          "lib/net6.0/cAlgo.API.dll": {
+            "related": ".xml"
+          }
         },
         "runtime": {
-          "lib/net6.0/cAlgo.API.dll": {}
+          "lib/net6.0/cAlgo.API.dll": {
+            "related": ".xml"
+          }
         },
         "build": {
           "build/cTrader.Automate.props": {},
@@ -68,7 +72,7 @@
     }
   },
   "projectFileDependencyGroups": {
-    ".NETCoreApp,Version=v6.0": [
+    "net6.0": [
       "cTrader.Automate >= *"
     ]
   },
@@ -78,11 +82,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Users\\User\\Documents\\cAlgo\\Sources\\Plugins\\EquityStop\\EquityStop\\Equity-Stop-w--Cooldown-cTrader\\EquityStop.csproj",
+      "projectUniqueName": "C:\\Users\\User\\Documents\\Equity-Stop-w--Cooldown-cTrader\\EquityStop.csproj",
       "projectName": "EquityStop",
-      "projectPath": "c:\\Users\\User\\Documents\\cAlgo\\Sources\\Plugins\\EquityStop\\EquityStop\\Equity-Stop-w--Cooldown-cTrader\\EquityStop.csproj",
+      "projectPath": "C:\\Users\\User\\Documents\\Equity-Stop-w--Cooldown-cTrader\\EquityStop.csproj",
       "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-      "outputPath": "c:\\Users\\User\\Documents\\cAlgo\\Sources\\Plugins\\EquityStop\\EquityStop\\Equity-Stop-w--Cooldown-cTrader\\obj\\",
+      "outputPath": "C:\\Users\\User\\Documents\\Equity-Stop-w--Cooldown-cTrader\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -95,6 +99,7 @@
       },
       "frameworks": {
         "net6.0": {
+          "targetAlias": "net6.0",
           "projectReferences": {}
         }
       },
@@ -106,13 +111,30 @@
     },
     "frameworks": {
       "net6.0": {
+        "targetAlias": "net6.0",
         "dependencies": {
           "cTrader.Automate": {
             "target": "Package",
             "version": "[*, )"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\3.1.426\\RuntimeIdentifierGraph.json"
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\6.0.425\\RuntimeIdentifierGraph.json"
       }
     }
   }

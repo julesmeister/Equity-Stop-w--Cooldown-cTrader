@@ -14,6 +14,9 @@ namespace cAlgo.Plugins
         ComboBox cashOrPerc;
         CheckBox maxDDOn;
         TextBox maxDD;
+        CheckBox secondMaxDDOn; // New CheckBox for the second maxDD
+        TextBox secondMaxDD; // New TextBox for the second maxDD
+        private Button retryButton; // New Button for retrying trades
         CheckBox maxProfitOn;
         TextBox maxProfit;
         ComboBox cooldownPeriodDropdown;
@@ -21,6 +24,8 @@ namespace cAlgo.Plugins
 
         private DateTime tradingResumptionTime;
         private bool isCooldownInProgress = false;
+        private bool isFirstMaxDDTriggered = false;
+        private bool isSecondMaxDDTriggered = false;
         private string lastTriggeredCondition = string.Empty;
         private TextBlock countdownText;
         private bool hasPlacedNewTrades = false;
@@ -34,11 +39,13 @@ namespace cAlgo.Plugins
             equity = Account.Equity;
             cashOrPerc.SelectedItem = "Cash";
             maxDDOn.IsChecked = true;
+            secondMaxDDOn.IsChecked = true;
             viewModel.MaxDDValue = 100;
             maxProfitOn.IsChecked = true;
             viewModel.MaxProfitValue = 100;
             // Subscribe to the TextChanged event for maxDD and maxProfit
             maxDD.TextChanged += (s) => maxDDOn.IsChecked = false;
+            secondMaxDD.TextChanged += (s) => secondMaxDDOn.IsChecked = false;
             maxProfit.TextChanged += (s) => maxProfitOn.IsChecked = false;
             // Set default cooldown to 2 minutes
             cooldownPeriodDropdown.SelectedItem = "2 minutes";
@@ -59,7 +66,7 @@ namespace cAlgo.Plugins
             block.IsExpanded = true;
             block.IsDetachable = false;
             block.Index = 1;
-            block.Height = 220;
+            block.Height = 280;
 
             var rootStackPanel = new StackPanel { Margin = new Thickness(10) };
 
@@ -67,7 +74,7 @@ namespace cAlgo.Plugins
             double comboBoxWidth = 80;
             
             // Create a Grid to hold the TextBlock and ComboBox for Cash or Percent selection
-            var cashOrPercGrid = new Grid { Margin = new Thickness(10, 10, 10, 0) };
+            var cashOrPercGrid = new Grid { Margin = new Thickness(10, 0, 10, 0) };
             var dropDownStyle = new Style();
             dropDownStyle.Set(ControlProperty.BackgroundColor, Color.FromArgb(41, 41, 41), ControlState.DarkTheme);
             dropDownStyle.Set(ControlProperty.BackgroundColor, Color.FromArgb(41, 41, 41), ControlState.LightTheme);
@@ -135,6 +142,48 @@ namespace cAlgo.Plugins
             equityStopLossGrid.AddChild(maxDDOn, 0, 2);
             
             rootStackPanel.AddChild(equityStopLossGrid);
+            
+            // Create a separate Grid for Retry Button
+            var retryButtonGrid = new Grid { Margin = new Thickness(10) };
+            retryButtonGrid.AddColumn().SetWidthInStars(1); // Fill whole width
+        
+            retryButton = new Button { Text = "Retry", IsEnabled = false }; // Initially disabled
+            retryButton.Click += (e) => {
+                // Logic to remove cooldown and allow trading again
+                retryButton.IsEnabled = false; // Disable retry button
+                maxDDOn.IsChecked = false;
+                isFirstMaxDDTriggered = true;
+                EndCooldown(retryInduced: true);
+                Print("Retry initiated. You can place trades now.");
+            }; 
+        
+            retryButtonGrid.AddChild(retryButton, 0, 0);
+            
+            rootStackPanel.AddChild(retryButtonGrid); 
+            
+            // Create a Grid for the second maxDD
+            var secondMaxDDGrid = new Grid { Margin = new Thickness(10) };
+            secondMaxDDGrid.AddColumn().SetWidthToAuto(); // Column for the checkbox
+            secondMaxDDGrid.AddColumn().SetWidthInStars(1); // Column for the TextBox
+            secondMaxDDGrid.AddColumn().SetWidthToAuto(); // Column for the second control (textbox or checkbox)
+
+            // Add label and input controls for second maxDD
+            var secondMaxDDLabel = new TextBlock { Text = "Last Chance (Loss):", Margin = new Thickness(0, 2, 10, 0) };
+            secondMaxDDGrid.AddChild(secondMaxDDLabel, 0, 0);
+
+            secondMaxDD = new TextBox { IsReadOnly = false, TextAlignment = TextAlignment.Right };
+            var secondMaxDDStyle = new Style();
+            secondMaxDDStyle.Set(ControlProperty.BackgroundColor, Color.FromArgb(26, 26, 26), ControlState.DarkTheme);
+            secondMaxDDStyle.Set(ControlProperty.ForegroundColor, Color.FromArgb(255, 255, 255), ControlState.DarkTheme);
+            secondMaxDDStyle.Set(ControlProperty.BackgroundColor, Color.FromArgb(231, 235, 237), ControlState.LightTheme);
+            secondMaxDDStyle.Set(ControlProperty.ForegroundColor, Color.FromArgb(55, 56, 57), ControlState.LightTheme);
+            secondMaxDD.Style = secondMaxDDStyle;
+            secondMaxDDGrid.AddChild(secondMaxDD, 0, 1);
+
+            secondMaxDDOn = new CheckBox { Margin = new Thickness(10, 0, 0, 0) }; // Checkbox for enabling secondMaxDD
+            secondMaxDDGrid.AddChild(secondMaxDDOn, 0, 2);
+
+            rootStackPanel.AddChild(secondMaxDDGrid);
 
             // Creating a grid for "Equity Stop (Target)" with a similar layout as "Equity Stop (Loss)"
             var equityStopTargetGrid = new Grid { Margin = new Thickness(10) };
@@ -193,11 +242,14 @@ namespace cAlgo.Plugins
             LocalStorage.SetString(CooldownPeriodKey, cooldownPeriod.ToString());
             LocalStorage.SetString("MaxDDOn", maxDDOn.IsChecked.ToString());
             LocalStorage.SetString("MaxDD", maxDD.Text);
+            LocalStorage.SetString("secondMaxDDOn", secondMaxDDOn.IsChecked.ToString());
+            LocalStorage.SetString("secondMaxDDValue", secondMaxDD.Text);
             LocalStorage.SetString("MaxProfitOn", maxProfitOn.IsChecked.ToString());
             LocalStorage.SetString("MaxProfit", maxProfit.Text);
             LocalStorage.SetString("CooldownPeriodDropdown", cooldownPeriodDropdown.SelectedItem.ToString());
             LocalStorage.SetString("TriggerOption", triggerComboBox.SelectedItem.ToString()); // Save trigger option
         }
+        
 
         private void RestoreCooldownState()
         {
@@ -205,6 +257,8 @@ namespace cAlgo.Plugins
             string storedPeriod = LocalStorage.GetString(CooldownPeriodKey);
             string storedMaxDDOn = LocalStorage.GetString("MaxDDOn");
             string storedMaxDD = LocalStorage.GetString("MaxDD");
+            string secondMaxDDOnStored = LocalStorage.GetString("secondMaxDDOn");
+            string secondMaxDDStoredValue = LocalStorage.GetString("secondMaxDDValue");
             string storedMaxProfitOn = LocalStorage.GetString("MaxProfitOn");
             string storedMaxProfit = LocalStorage.GetString("MaxProfit");
             string storedCooldownPeriod = LocalStorage.GetString("CooldownPeriodDropdown");
@@ -217,6 +271,12 @@ namespace cAlgo.Plugins
         
             if (!string.IsNullOrEmpty(storedMaxProfitOn))
                 maxProfitOn.IsChecked = bool.Parse(storedMaxProfitOn);
+                
+            if (!string.IsNullOrEmpty(secondMaxDDOnStored))
+                secondMaxDDOn.IsChecked = bool.Parse(secondMaxDDOnStored);
+            
+            if (!string.IsNullOrEmpty(secondMaxDDStoredValue))
+                secondMaxDD.Text = secondMaxDDStoredValue;
             
             if (!string.IsNullOrEmpty(storedMaxProfit))
                 maxProfit.Text = storedMaxProfit;
@@ -263,23 +323,25 @@ namespace cAlgo.Plugins
         }
 
 
-        private void EndCooldown()
+        private void EndCooldown(bool retryInduced = false)
         {
             countdownText.Text = "Cooldown: 00:00:00";
+            countdownText.ForegroundColor = Color.White;
             isCooldownInProgress = false;
-
-            if (!hasPlacedNewTrades)
-            {
-                maxDDOn.IsChecked = false;
-                maxProfitOn.IsChecked = false;
-                Print("Cooldown period ended. No new trades placed, cooldown conditions disabled.");
-            }
+            if(retryInduced == false) isFirstMaxDDTriggered = false; // Reset first maxDD flag if not caused by retry button
+            isSecondMaxDDTriggered = false; // Reset second maxDD flag
 
             UpdateControlsState(true);
             lastTriggeredCondition = string.Empty;
 
             LocalStorage.SetString(CooldownTimestampKey, string.Empty);
             LocalStorage.SetString(CooldownPeriodKey, string.Empty);
+            
+            // Update equity to the current value after cooldown
+            if (triggerComboBox.SelectedItem == "Per Trade") equity = Account.Equity;
+            tradingResumptionTime = DateTime.UtcNow;
+            retryButton.IsEnabled = true;
+            maxDDOn.IsChecked = true;
         }
 
 
@@ -303,17 +365,7 @@ namespace cAlgo.Plugins
                 else
                 {
                     // Cooldown has completed
-                    countdownText.Text = "Cooldown: 00:00:00";
-                    isCooldownInProgress = false; // End cooldown
-                    UpdateControlsState(true); // Enable controls after cooldown
-                    lastTriggeredCondition = string.Empty; // Reset the condition tracker
-                    // Update equity to the current value after cooldown
-                    if (triggerComboBox.SelectedItem == "Per Trade")
-                    {
-                        equity = Account.Equity;
-                    }
-                    // Reset countdown text color to default after cooldown ends
-                    countdownText.ForegroundColor = Color.White;
+                    EndCooldown();
                 }
                 // Prevent and close all open positions while still in cooldown
                 foreach (var pos in Positions)
@@ -336,12 +388,21 @@ namespace cAlgo.Plugins
             
             if (cashOrPerc.SelectedItem == "Cash")
             {
-                if (maxDDOn.IsChecked == true && Account.Equity <= equity - double.Parse(maxDD.Text))
+                if (isFirstMaxDDTriggered != true && maxDDOn.IsChecked == true && Account.Equity <= equity - double.Parse(maxDD.Text))
                 {
                     triggerCooldown = true;
+                    isFirstMaxDDTriggered = true;
+                    maxDDOn.IsChecked = false;
                     currentConditionTriggered = "maxDD";
-                }
-                else if (maxProfitOn.IsChecked == true && Account.Equity >= equity + double.Parse(maxProfit.Text))
+                } else if (isFirstMaxDDTriggered == true && secondMaxDDOn.IsChecked == true && isSecondMaxDDTriggered != true && secondMaxDD.Text != string.Empty && 
+                    Account.Equity < equity - Convert.ToDouble(secondMaxDD.Text))
+                {
+                    isSecondMaxDDTriggered = true;
+                    // Trigger cooldown or handle second maxDD trigger logic here
+                    triggerCooldown = true;
+                    currentConditionTriggered = "finalDD";
+                    retryButton.IsEnabled = false;
+                } else if (maxProfitOn.IsChecked == true && Account.Equity >= equity + double.Parse(maxProfit.Text))
                 {
                     triggerCooldown = true;
                     currentConditionTriggered = "maxProfit";
@@ -380,15 +441,9 @@ namespace cAlgo.Plugins
 
         private void StopTradingAndSetCooldown()
         {
-            if (isCooldownInProgress) // Check if cooldown is already active
-            {
-                return; // Exit if trading is already stopped
-            }
-            
-            foreach (var pos in Positions)
-            {
-                ClosePosition(pos);
-            }
+            if (isCooldownInProgress) return; // Exit if already in cooldown
+    
+            foreach (var pos in Positions) ClosePosition(pos);
 
             tradingResumptionTime = DateTime.UtcNow + GetCooldownPeriod();
             SaveState(tradingResumptionTime, GetCooldownPeriod());
@@ -396,6 +451,11 @@ namespace cAlgo.Plugins
             isCooldownInProgress = true;
             UpdateControlsState(false);
             hasPlacedNewTrades = false;
+            
+            // Enable retry button after triggering cooldown from first maxDD
+            if (maxDDOn.IsChecked == true) {
+                retryButton.IsEnabled = true;
+            }
         }
 
         private TimeSpan GetCooldownPeriod()
@@ -420,9 +480,11 @@ namespace cAlgo.Plugins
             cashOrPerc.IsEnabled = isEnabled;
             maxDDOn.IsEnabled = isEnabled;
             maxDD.IsEnabled = isEnabled;
+            secondMaxDDOn.IsEnabled = isEnabled;
             maxProfitOn.IsEnabled = isEnabled;
             maxProfit.IsEnabled = isEnabled;
             cooldownPeriodDropdown.IsEnabled = isEnabled;
+            triggerComboBox.IsEnabled = isEnabled;
         }
     }
 }
