@@ -227,7 +227,7 @@ namespace cAlgo.Plugins
 
             countdownText = new TextBlock
             {
-                Text = "Cooldown: 00:00:00",
+                Text = "Cooldown Timer: 00:00:00",
                 Margin = new Thickness(0, 10, 10, 10),
                 HorizontalAlignment = HorizontalAlignment.Left
             };
@@ -328,7 +328,7 @@ namespace cAlgo.Plugins
 
         private void EndCooldown(bool retryInduced = false)
         {
-            countdownText.Text = "Cooldown: 00:00:00";
+            countdownText.Text = "Cooldown Timer: 00:00:00";
             countdownText.ForegroundColor = Color.White;
             isCooldownInProgress = false;
             if (retryInduced == false) isFirstMaxDDTriggered = false; // Reset first maxDD flag if not caused by retry button
@@ -362,7 +362,7 @@ namespace cAlgo.Plugins
                 if (DateTime.UtcNow < tradingResumptionTime)
                 {
                     TimeSpan remainingTime = tradingResumptionTime - DateTime.UtcNow;
-                    countdownText.Text = $"Cooldown: {remainingTime:hh\\:mm\\:ss}";
+                    countdownText.Text = $"Cooldown Timer: {remainingTime:hh\\:mm\\:ss}";
                     UpdateControlsState(false); // Disable controls during cooldown
                 }
                 else
