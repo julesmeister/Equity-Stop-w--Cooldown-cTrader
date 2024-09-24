@@ -128,23 +128,18 @@ namespace cAlgo.Plugins
             grid.AddChild(textBlock, 0, 0);
 
             textBox = new TextBox { IsReadOnly = false, TextAlignment = TextAlignment.Right };
-            SetTextBoxStyle(textBox);
-            grid.AddChild(textBox, 0, 1);
-
-            checkBox = new CheckBox { Margin = new Thickness(10, 0, 0, 0) };
-            grid.AddChild(checkBox, 0, 2);
-
-            parent.AddChild(grid);
-        }
-
-        private void SetTextBoxStyle(TextBox textBox)
-        {
             var style = new Style();
             style.Set(ControlProperty.BackgroundColor, Color.FromArgb(26, 26, 26), ControlState.DarkTheme);
             style.Set(ControlProperty.ForegroundColor, Color.FromArgb(255, 255, 255), ControlState.DarkTheme);
             style.Set(ControlProperty.BackgroundColor, Color.FromArgb(231, 235, 237), ControlState.LightTheme);
             style.Set(ControlProperty.ForegroundColor, Color.FromArgb(55, 56, 57), ControlState.LightTheme);
             textBox.Style = style;
+            grid.AddChild(textBox, 0, 1);
+
+            checkBox = new CheckBox { Margin = new Thickness(10, 0, 0, 0) };
+            grid.AddChild(checkBox, 0, 2);
+
+            parent.AddChild(grid);
         }
 
         private void AddRetryButton(StackPanel parent)
