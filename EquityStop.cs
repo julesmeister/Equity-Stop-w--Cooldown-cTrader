@@ -149,6 +149,7 @@ namespace cAlgo.Plugins
                 retryButton.IsEnabled = false;
                 maxDDOn.IsChecked = maxProfitOn.IsChecked = false;
                 isFirstMaxDDTriggered = true;
+                equity = Account.Equity; // Reset equity to have more leeway for drawdown
                 EndCooldown(retryInduced: true);
             };
 
