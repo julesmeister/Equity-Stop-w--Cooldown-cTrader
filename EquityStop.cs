@@ -250,6 +250,8 @@ namespace cAlgo.Plugins
             LocalStorage.SetString("MaxProfit", maxProfit.Text);
             LocalStorage.SetString("CooldownPeriodDropdown", cooldownPeriodDropdown.SelectedItem.ToString());
             LocalStorage.SetString("TriggerOption", triggerComboBox.SelectedItem.ToString()); // Save trigger option
+            LocalStorage.SetString("isFirstMaxDDTriggered", isFirstMaxDDTriggered.ToString());
+            LocalStorage.SetString("isFinalMaxDDTriggered", isFinalMaxDDTriggered.ToString());
         }
 
 
@@ -265,6 +267,8 @@ namespace cAlgo.Plugins
             string storedMaxProfit = LocalStorage.GetString("MaxProfit");
             string storedCooldownPeriod = LocalStorage.GetString("CooldownPeriodDropdown");
             string storedTriggerOption = LocalStorage.GetString("TriggerOption");
+            string storedIsFirstMaxDDTriggered = LocalStorage.GetString("isFirstMaxDDTriggered");
+            string storedIsFinalMaxDDTriggered = LocalStorage.GetString("isFinalMaxDDTriggered");
 
             if (!string.IsNullOrEmpty(storedMaxDDOn)) maxDDOn.IsChecked = bool.Parse(storedMaxDDOn);
 
@@ -281,6 +285,10 @@ namespace cAlgo.Plugins
             if (!string.IsNullOrEmpty(storedCooldownPeriod)) cooldownPeriodDropdown.SelectedItem = storedCooldownPeriod;
 
             if (!string.IsNullOrEmpty(storedTriggerOption)) triggerComboBox.SelectedItem = storedTriggerOption;
+
+            if (!string.IsNullOrEmpty(storedIsFirstMaxDDTriggered)) isFirstMaxDDTriggered = bool.Parse(storedIsFirstMaxDDTriggered);
+
+            if (!string.IsNullOrEmpty(storedIsFinalMaxDDTriggered)) isFinalMaxDDTriggered = bool.Parse(storedIsFinalMaxDDTriggered);
 
             if (!string.IsNullOrEmpty(storedTimestamp) && !string.IsNullOrEmpty(storedPeriod))
             {
