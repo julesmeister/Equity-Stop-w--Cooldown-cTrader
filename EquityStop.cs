@@ -265,29 +265,22 @@ namespace cAlgo.Plugins
             string storedMaxProfit = LocalStorage.GetString("MaxProfit");
             string storedCooldownPeriod = LocalStorage.GetString("CooldownPeriodDropdown");
             string storedTriggerOption = LocalStorage.GetString("TriggerOption");
-            if (!string.IsNullOrEmpty(storedMaxDDOn))
-                maxDDOn.IsChecked = bool.Parse(storedMaxDDOn);
 
-            if (!string.IsNullOrEmpty(storedMaxDD))
-                maxDD.Text = storedMaxDD;
+            if (!string.IsNullOrEmpty(storedMaxDDOn)) maxDDOn.IsChecked = bool.Parse(storedMaxDDOn);
 
-            if (!string.IsNullOrEmpty(storedMaxProfitOn))
-                maxProfitOn.IsChecked = bool.Parse(storedMaxProfitOn);
+            if (!string.IsNullOrEmpty(storedMaxDD)) maxDD.Text = storedMaxDD;
 
-            if (!string.IsNullOrEmpty(finalMaxDDOnStored))
-                finalMaxDDOn.IsChecked = bool.Parse(finalMaxDDOnStored);
+            if (!string.IsNullOrEmpty(storedMaxProfitOn)) maxProfitOn.IsChecked = bool.Parse(storedMaxProfitOn);
 
-            if (!string.IsNullOrEmpty(finalMaxDDStoredValue))
-                finalMaxDD.Text = finalMaxDDStoredValue;
+            if (!string.IsNullOrEmpty(finalMaxDDOnStored)) finalMaxDDOn.IsChecked = bool.Parse(finalMaxDDOnStored);
 
-            if (!string.IsNullOrEmpty(storedMaxProfit))
-                maxProfit.Text = storedMaxProfit;
+            if (!string.IsNullOrEmpty(finalMaxDDStoredValue)) finalMaxDD.Text = finalMaxDDStoredValue;
 
-            if (!string.IsNullOrEmpty(storedCooldownPeriod))
-                cooldownPeriodDropdown.SelectedItem = storedCooldownPeriod;
+            if (!string.IsNullOrEmpty(storedMaxProfit)) maxProfit.Text = storedMaxProfit;
 
-            if (!string.IsNullOrEmpty(storedTriggerOption))
-                triggerComboBox.SelectedItem = storedTriggerOption;
+            if (!string.IsNullOrEmpty(storedCooldownPeriod)) cooldownPeriodDropdown.SelectedItem = storedCooldownPeriod;
+
+            if (!string.IsNullOrEmpty(storedTriggerOption)) triggerComboBox.SelectedItem = storedTriggerOption;
 
             if (!string.IsNullOrEmpty(storedTimestamp) && !string.IsNullOrEmpty(storedPeriod))
             {
@@ -308,12 +301,7 @@ namespace cAlgo.Plugins
                         tradingResumptionTime = expectedResumptionTime;
                         isCooldownInProgress = true;
                     }
-                    else
-                    {
-                        // If the cooldown period has already passed
-                        LocalStorage.SetString(CooldownTimestampKey, string.Empty);
-                        LocalStorage.SetString(CooldownPeriodKey, string.Empty);
-                    }
+                    else EndCooldown(); // If the cooldown period has already passed
                 }
                 else
                 {
@@ -397,8 +385,7 @@ namespace cAlgo.Plugins
                     maxDDOn.IsChecked = false;
                     currentConditionTriggered = "maxDD";
                 }
-                else if (isFirstMaxDDTriggered == true && finalMaxDDOn.IsChecked == true && finalMaxDD.Text != string.Empty &&
-                    Account.Equity <= equity - double.Parse(finalMaxDD.Text))
+                else if (isFirstMaxDDTriggered == true && finalMaxDDOn.IsChecked == true && Account.Equity <= equity - double.Parse(finalMaxDD.Text))
                 {
                     isFinalMaxDDTriggered = true;
                     // Trigger cooldown or handle second maxDD trigger logic here
@@ -427,8 +414,7 @@ namespace cAlgo.Plugins
                     currentConditionTriggered = "maxDD";
                 }
                 // Check for final maxDD condition using percentage threshold
-                else if (isFirstMaxDDTriggered && finalMaxDDOn.IsChecked == true && !string.IsNullOrEmpty(finalMaxDD.Text) &&
-                         Account.Equity <= finalMinEquity)
+                else if (isFirstMaxDDTriggered && finalMaxDDOn.IsChecked == true && Account.Equity <= finalMinEquity)
                 {
                     isFinalMaxDDTriggered = true;
                     triggerCooldown = true;
