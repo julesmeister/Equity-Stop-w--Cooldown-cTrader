@@ -471,7 +471,7 @@ namespace cAlgo.Plugins
 
             // Enable retry button after triggering cooldown from first maxDD, disable if final maxDD triggered.
             if (isFirstMaxDDTriggered == true && isFinalMaxDDTriggered == false) retryButton.IsEnabled = true;
-            else if (isFirstMaxDDTriggered == true && isFinalMaxDDTriggered == true) retryButton.IsEnabled = false;
+            else if (isFinalMaxDDTriggered == true) retryButton.IsEnabled = false;
         }
 
         private TimeSpan GetCooldownPeriod()
