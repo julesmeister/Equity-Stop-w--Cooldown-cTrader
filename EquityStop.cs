@@ -39,11 +39,8 @@ namespace cAlgo.Plugins
             viewModel.Changed += viewModel_Changed;
             equity = Account.Equity;
             cashOrPerc.SelectedItem = "Cash";
-            maxDDOn.IsChecked = true;
-            finalMaxDDOn.IsChecked = true;
-            viewModel.MaxDDValue = 100;
-            maxProfitOn.IsChecked = true;
-            viewModel.MaxProfitValue = 100;
+            maxDDOn.IsChecked = finalMaxDDOn.IsChecked = maxProfitOn.IsChecked = true;
+            viewModel.MaxDDValue = viewModel.MaxProfitValue = 100;
             Positions.Opened += OnPositionOpened; // Subscribe to the PositionsOpened event
             // Subscribe to the TextChanged event for maxDD and maxProfit
             maxDD.TextChanged += (s) => maxDDOn.IsChecked = false;
@@ -152,8 +149,7 @@ namespace cAlgo.Plugins
             retryButton.Click += (e) =>
             {
                 retryButton.IsEnabled = false;
-                maxDDOn.IsChecked = false;
-                maxProfitOn.IsChecked = false;
+                maxDDOn.IsChecked = maxProfitOn.IsChecked = false;
                 isFirstMaxDDTriggered = true;
                 EndCooldown(retryInduced: true);
             };
@@ -274,9 +270,8 @@ namespace cAlgo.Plugins
         private void EndCooldown(bool retryInduced = false)
         {
             countdownText.Text = "Cooldown Timer: 00:00:00";
-            isCooldownInProgress = false;
+            isCooldownInProgress = isFinalMaxDDTriggered = false; // Reset second maxDD flag
             if (retryInduced == false) isFirstMaxDDTriggered = false; // Reset first maxDD flag if not caused by retry button
-            isFinalMaxDDTriggered = false; // Reset second maxDD flag
 
             UpdateControlsState(true);
             lastTriggeredCondition = string.Empty;
@@ -352,8 +347,7 @@ namespace cAlgo.Plugins
             else if (maxProfitOn.IsChecked == true && Account.Equity >= maxProfitThreshold)
             {
                 triggerCooldown = true;
-                isFirstMaxDDTriggered = false;
-                isFinalMaxDDTriggered = false;
+                isFirstMaxDDTriggered = isFinalMaxDDTriggered = false;
                 currentConditionTriggered = "maxProfit";
             }
 
@@ -403,15 +397,7 @@ namespace cAlgo.Plugins
         private void UpdateControlsState(bool isEnabled)
         {
             countdownText.ForegroundColor = (isEnabled == false) ? Color.Red : Color.White;
-            cashOrPerc.IsEnabled = isEnabled;
-            maxDDOn.IsEnabled = isEnabled;
-            maxDD.IsEnabled = isEnabled;
-            finalMaxDD.IsEnabled = isEnabled;
-            finalMaxDDOn.IsEnabled = isEnabled;
-            maxProfitOn.IsEnabled = isEnabled;
-            maxProfit.IsEnabled = isEnabled;
-            cooldownPeriodDropdown.IsEnabled = isEnabled;
-            triggerComboBox.IsEnabled = isEnabled;
+            cashOrPerc.IsEnabled = maxDDOn.IsEnabled = maxDD.IsEnabled = finalMaxDD.IsEnabled = finalMaxDDOn.IsEnabled = maxProfitOn.IsEnabled = maxProfit.IsEnabled = cooldownPeriodDropdown.IsEnabled = triggerComboBox.IsEnabled = isEnabled;
         }
     }
 }
