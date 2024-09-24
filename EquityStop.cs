@@ -74,26 +74,13 @@ namespace cAlgo.Plugins
             var rootStackPanel = new StackPanel { Margin = new Thickness(10) };
             double comboBoxWidth = 80;
 
-            // Add Cash or Percent selection controls
-            AddSelectionGrid(rootStackPanel, "Choose Between Cash and Percent:", ref cashOrPerc, new[] { "Cash", "Percent" }, comboBoxWidth);
-
-            // Add Trigger selection controls
-            AddSelectionGrid(rootStackPanel, "Trigger:", ref triggerComboBox, new[] { "Per Trade", "Per Session" }, comboBoxWidth);
-
-            // Add Equity Stop (Loss) controls
-            AddEquityStopGrid(rootStackPanel, "Equity Stop (Loss):", ref maxDD, ref maxDDOn);
-
-            // Add Retry button
-            AddRetryButton(rootStackPanel);
-
-            // Add Last Chance (Loss) controls
-            AddEquityStopGrid(rootStackPanel, "Last Chance (Loss):", ref finalMaxDD, ref finalMaxDDOn);
-
-            // Add Equity Stop (Target) controls
-            AddEquityStopGrid(rootStackPanel, "Equity Stop (Target):", ref maxProfit, ref maxProfitOn);
-
-            // Add Cooldown controls
-            AddCooldownControls(rootStackPanel, comboBoxWidth);
+            AddSelectionGrid(rootStackPanel, "Choose Between Cash and Percent:", ref cashOrPerc, new[] { "Cash", "Percent" }, comboBoxWidth); // Add Cash or Percent selection controls
+            AddSelectionGrid(rootStackPanel, "Trigger:", ref triggerComboBox, new[] { "Per Trade", "Per Session" }, comboBoxWidth); // Add Trigger selection controls
+            AddEquityStopGrid(rootStackPanel, "Equity Stop (Loss):", ref maxDD, ref maxDDOn); // Add Equity Stop (Loss) controls
+            AddRetryButton(rootStackPanel); // Add Retry button
+            AddEquityStopGrid(rootStackPanel, "Last Chance (Loss):", ref finalMaxDD, ref finalMaxDDOn); // Add Last Chance (Loss) controls
+            AddEquityStopGrid(rootStackPanel, "Equity Stop (Target):", ref maxProfit, ref maxProfitOn); // Add Equity Stop (Target) controls
+            AddCooldownControls(rootStackPanel, comboBoxWidth); // Add Cooldown controls
 
             block.Child = rootStackPanel;
         }
