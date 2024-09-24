@@ -26,9 +26,7 @@ namespace cAlgo.Plugins
         private bool isCooldownInProgress = false;
         private bool isFirstMaxDDTriggered = false;
         private bool isFinalMaxDDTriggered = false;
-        private string lastTriggeredCondition = string.Empty;
         private bool triggerCooldown = false;
-        private string currentConditionTriggered = string.Empty;
         private TextBlock countdownText;
         private const string CooldownTimestampKey = "CooldownTimestamp";
         private const string CooldownPeriodKey = "CooldownPeriod";
@@ -274,7 +272,6 @@ namespace cAlgo.Plugins
             if (retryInduced == false) isFirstMaxDDTriggered = false; // Reset first maxDD flag if not caused by retry button
 
             UpdateControlsState(true);
-            lastTriggeredCondition = string.Empty;
 
             LocalStorage.SetString(CooldownTimestampKey, string.Empty);
             LocalStorage.SetString(CooldownPeriodKey, string.Empty);
@@ -328,7 +325,6 @@ namespace cAlgo.Plugins
         private void HandleTriggerConditions()
         {
             triggerCooldown = false;
-            currentConditionTriggered = string.Empty;
             double maxDDThreshold = cashOrPerc.SelectedItem.ToString() == "Cash" ? equity - double.Parse(maxDD.Text) : equity * (1 - double.Parse(maxDD.Text) / 100);
             double finalMaxDDThreshold = cashOrPerc.SelectedItem.ToString() == "Cash" ? equity - double.Parse(finalMaxDD.Text) : equity * (1 - double.Parse(finalMaxDD.Text) / 100);
             double maxProfitThreshold = cashOrPerc.SelectedItem.ToString() == "Cash" ? equity + double.Parse(maxProfit.Text) : equity * (1 + double.Parse(maxProfit.Text) / 100);
@@ -337,24 +333,20 @@ namespace cAlgo.Plugins
             {
                 triggerCooldown = isFirstMaxDDTriggered = true;
                 maxDDOn.IsChecked = false;
-                currentConditionTriggered = "maxDD";
             }
             else if (isFirstMaxDDTriggered && finalMaxDDOn.IsChecked == true && Account.Equity <= finalMaxDDThreshold)
             {
                 triggerCooldown = isFinalMaxDDTriggered = true;
-                currentConditionTriggered = "finalDD";
             }
             else if (maxProfitOn.IsChecked == true && Account.Equity >= maxProfitThreshold)
             {
                 triggerCooldown = true;
                 isFirstMaxDDTriggered = isFinalMaxDDTriggered = false;
-                currentConditionTriggered = "maxProfit";
             }
 
-            if (triggerCooldown && currentConditionTriggered != lastTriggeredCondition)
+            if (triggerCooldown)
             {
                 StopTradingAndSetCooldown();
-                lastTriggeredCondition = currentConditionTriggered; // Update last triggered condition
             }
         }
 
