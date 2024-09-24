@@ -44,6 +44,7 @@ namespace cAlgo.Plugins
             viewModel.MaxDDValue = 100;
             maxProfitOn.IsChecked = true;
             viewModel.MaxProfitValue = 100;
+            Positions.Opened += OnPositionOpened; // Subscribe to the PositionsOpened event
             // Subscribe to the TextChanged event for maxDD and maxProfit
             maxDD.TextChanged += (s) => maxDDOn.IsChecked = false;
             finalMaxDD.TextChanged += (s) => finalMaxDDOn.IsChecked = false;
@@ -57,8 +58,20 @@ namespace cAlgo.Plugins
             RestoreCooldownState();
         }
 
+        private void OnPositionOpened(PositionOpenedEventArgs args)
+        {
+            var position = args.Position;
+
+            // Check if the position has no Stop Loss
+            if (position.StopLoss == null)
+            {
+                position.ModifyStopLossPips(150);
+            }
+        }
+
         protected override void OnStop()
         {
+            Positions.Opened -= OnPositionOpened;
             SaveState(tradingResumptionTime, GetCooldownPeriod());
         }
 
