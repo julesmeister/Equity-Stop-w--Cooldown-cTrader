@@ -302,20 +302,20 @@ namespace cAlgo.Plugins
         {
             if (isCooldownInProgress)
             {
-                if (DateTime.UtcNow < tradingResumptionTime)
+                if (DateTime.UtcNow < tradingResumptionTime) // Check if the current time is still before the scheduled trading resumption time
                 {
-                    TimeSpan remainingTime = tradingResumptionTime - DateTime.UtcNow;
-                    countdownText.Text = $"Cooldown Timer: {remainingTime:hh\\:mm\\:ss}";
+                    TimeSpan remainingTime = tradingResumptionTime - DateTime.UtcNow; // Calculate the remaining time until the cooldown period ends
+                    countdownText.Text = $"Cooldown Timer: {remainingTime:hh\\:mm\\:ss}"; // Display the remaining cooldown time
                     UpdateControlsState(false); // Disable controls during cooldown
                 }
-                else EndCooldown();
+                else EndCooldown(); // End the cooldown if the current time has passed the trading resumption time
 
-                // Prevent and close all open positions while still in cooldown
+                // Iterate over all open positions while still in cooldown
                 foreach (var pos in Positions)
                 {
                     try
                     {
-                        ClosePosition(pos);
+                        ClosePosition(pos); // Attempt to close each open position to prevent trading activity during cooldown
                     }
                     catch (Exception ex)
                     {
