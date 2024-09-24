@@ -62,162 +62,115 @@ namespace cAlgo.Plugins
             SaveState(tradingResumptionTime, GetCooldownPeriod());
         }
 
+        // Controls Start Here
         private void AddControls()
         {
             var block = Asp.SymbolTab.AddBlock("Equity Stop Plugin");
             block.IsExpanded = true;
             block.IsDetachable = false;
             block.Index = 1;
-            block.Height = 280;
+            block.Height = 300;
 
             var rootStackPanel = new StackPanel { Margin = new Thickness(10) };
-
-            // Set the desired width for both ComboBoxes
             double comboBoxWidth = 80;
 
-            // Create a Grid to hold the TextBlock and ComboBox for Cash or Percent selection
-            var cashOrPercGrid = new Grid { Margin = new Thickness(10, 0, 10, 0) };
-            var dropDownStyle = new Style();
-            dropDownStyle.Set(ControlProperty.BackgroundColor, Color.FromArgb(41, 41, 41), ControlState.DarkTheme);
-            dropDownStyle.Set(ControlProperty.BackgroundColor, Color.FromArgb(41, 41, 41), ControlState.LightTheme);
-            cashOrPercGrid.Style = dropDownStyle;
-            cashOrPercGrid.AddColumn().SetWidthInStars(1); // Column for TextBlock
-            cashOrPercGrid.AddColumn().SetWidthToAuto();   // Column for ComboBox
+            // Add Cash or Percent selection controls
+            AddSelectionGrid(rootStackPanel, "Choose Between Cash and Percent:", ref cashOrPerc, new[] { "Cash", "Percent" }, comboBoxWidth);
 
-            // Add the TextBlock for Cash or Percent selection
-            var textBlock = new TextBlock { Text = "Choose Between Cash and Percent:", Margin = new Thickness(0, 10, 10, 0) };
-            cashOrPercGrid.AddChild(textBlock, 0, 0); // First column
+            // Add Trigger selection controls
+            AddSelectionGrid(rootStackPanel, "Trigger:", ref triggerComboBox, new[] { "Per Trade", "Per Session" }, comboBoxWidth);
 
-            // Add the ComboBox for Cash or Percent selection
-            cashOrPerc = new ComboBox
+            // Add Equity Stop (Loss) controls
+            AddEquityStopGrid(rootStackPanel, "Equity Stop (Loss):", ref maxDD, ref maxDDOn);
+
+            // Add Retry button
+            AddRetryButton(rootStackPanel);
+
+            // Add Last Chance (Loss) controls
+            AddEquityStopGrid(rootStackPanel, "Last Chance (Loss):", ref finalMaxDD, ref finalMaxDDOn);
+
+            // Add Equity Stop (Target) controls
+            AddEquityStopGrid(rootStackPanel, "Equity Stop (Target):", ref maxProfit, ref maxProfitOn);
+
+            // Add Cooldown controls
+            AddCooldownControls(rootStackPanel, comboBoxWidth);
+
+            block.Child = rootStackPanel;
+        }
+
+        private void AddSelectionGrid(StackPanel parent, string label, ref ComboBox comboBox, string[] items, double width)
+        {
+            var grid = new Grid { Margin = new Thickness(10, 0, 10, 0) };
+            grid.AddColumn().SetWidthInStars(1);
+            grid.AddColumn().SetWidthToAuto();
+
+            var textBlock = new TextBlock { Text = label, Margin = new Thickness(0, 10, 10, 0) };
+            grid.AddChild(textBlock, 0, 0);
+
+            comboBox = new ComboBox { Margin = new Thickness(10, 10, 0, 10), Width = width };
+            foreach (var item in items)
             {
-                Margin = new Thickness(10, 10, 0, 10),
-                Width = comboBoxWidth // Set the width of the ComboBox
-            };
-            cashOrPerc.AddItem("Cash");
-            cashOrPerc.AddItem("Percent");
-            cashOrPercGrid.AddChild(cashOrPerc, 0, 1); // Second column
+                comboBox.AddItem(item);
+            }
+            grid.AddChild(comboBox, 0, 1);
 
-            // Add the Grid to the StackPanel
-            rootStackPanel.AddChild(cashOrPercGrid);
+            parent.AddChild(grid);
+        }
 
-            // Create a Grid to hold the TextBlock and ComboBox for Trigger selection
-            var triggerGrid = new Grid { Margin = new Thickness(10, 0, 10, 0) };
-            triggerGrid.AddColumn().SetWidthInStars(1); // Column for TextBlock
-            triggerGrid.AddColumn().SetWidthToAuto(); // Column for ComboBox
+        private void AddEquityStopGrid(StackPanel parent, string label, ref TextBox textBox, ref CheckBox checkBox)
+        {
+            var grid = new Grid { Margin = new Thickness(10) };
+            grid.AddColumn().SetWidthToAuto();
+            grid.AddColumn().SetWidthInStars(1);
+            grid.AddColumn().SetWidthToAuto();
 
-            // Add the TextBlock for Trigger selection
-            var triggerLabel = new TextBlock { Text = "Trigger:", Margin = new Thickness(0, 0, 10, 0) };
-            triggerGrid.AddChild(triggerLabel, 0, 0);
+            var textBlock = new TextBlock { Text = label, Margin = new Thickness(0, 2, 10, 0) };
+            grid.AddChild(textBlock, 0, 0);
 
-            // Add the ComboBox for Trigger selection
-            triggerComboBox = new ComboBox
-            {
-                Margin = new Thickness(10, 0, 0, 10),
-                Width = comboBoxWidth // Set the width of the ComboBox
-            };
-            triggerComboBox.AddItem("Per Trade");
-            triggerComboBox.AddItem("Per Session");
-            triggerGrid.AddChild(triggerComboBox, 0, 1); // Second column
+            textBox = new TextBox { IsReadOnly = false, TextAlignment = TextAlignment.Right };
+            SetTextBoxStyle(textBox);
+            grid.AddChild(textBox, 0, 1);
 
-            // Add the Grid to the StackPanel
-            rootStackPanel.AddChild(triggerGrid);
+            checkBox = new CheckBox { Margin = new Thickness(10, 0, 0, 0) };
+            grid.AddChild(checkBox, 0, 2);
 
+            parent.AddChild(grid);
+        }
 
-            var equityStopLossGrid = new Grid { Margin = new Thickness(10) };
-            equityStopLossGrid.AddColumn().SetWidthToAuto();  // Column for the checkbox
-            equityStopLossGrid.AddColumn().SetWidthInStars(1);  // Column for the TextBlock
-            equityStopLossGrid.AddColumn().SetWidthToAuto();  // Column for the textbox
+        private void SetTextBoxStyle(TextBox textBox)
+        {
+            var style = new Style();
+            style.Set(ControlProperty.BackgroundColor, Color.FromArgb(26, 26, 26), ControlState.DarkTheme);
+            style.Set(ControlProperty.ForegroundColor, Color.FromArgb(255, 255, 255), ControlState.DarkTheme);
+            style.Set(ControlProperty.BackgroundColor, Color.FromArgb(231, 235, 237), ControlState.LightTheme);
+            style.Set(ControlProperty.ForegroundColor, Color.FromArgb(55, 56, 57), ControlState.LightTheme);
+            textBox.Style = style;
+        }
 
-            var equityStopLossLabel = new TextBlock { Text = "Equity Stop (Loss):", Margin = new Thickness(0, 2, 10, 0) };
-            equityStopLossGrid.AddChild(equityStopLossLabel, 0, 0);
+        private void AddRetryButton(StackPanel parent)
+        {
+            var grid = new Grid { Margin = new Thickness(10) };
+            grid.AddColumn().SetWidthInStars(1);
 
-            maxDD = new TextBox { IsReadOnly = false, TextAlignment = TextAlignment.Right };
-            var maxDDStyle = new Style();
-            maxDDStyle.Set(ControlProperty.BackgroundColor, Color.FromArgb(26, 26, 26), ControlState.DarkTheme);
-            maxDDStyle.Set(ControlProperty.ForegroundColor, Color.FromArgb(255, 255, 255), ControlState.DarkTheme);
-            maxDDStyle.Set(ControlProperty.BackgroundColor, Color.FromArgb(231, 235, 237), ControlState.LightTheme);
-            maxDDStyle.Set(ControlProperty.ForegroundColor, Color.FromArgb(55, 56, 57), ControlState.LightTheme);
-            maxDD.Style = maxDDStyle;
-            equityStopLossGrid.AddChild(maxDD, 0, 1);
-            maxDDOn = new CheckBox { Margin = new Thickness(10, 0, 0, 0) };
-            equityStopLossGrid.AddChild(maxDDOn, 0, 2);
-
-            rootStackPanel.AddChild(equityStopLossGrid);
-
-            // Create a separate Grid for Retry Button
-            var retryButtonGrid = new Grid { Margin = new Thickness(10) };
-            retryButtonGrid.AddColumn().SetWidthInStars(1); // Fill whole width
-
-            retryButton = new Button { Text = "Retry", IsEnabled = false }; // Initially disabled
+            retryButton = new Button { Text = "Retry", IsEnabled = false };
             retryButton.Click += (e) =>
             {
-                // Logic to remove cooldown and allow trading again
-                retryButton.IsEnabled = false; // Disable retry button
+                retryButton.IsEnabled = false;
                 maxDDOn.IsChecked = false;
                 maxProfitOn.IsChecked = false;
                 isFirstMaxDDTriggered = true;
                 EndCooldown(retryInduced: true);
             };
 
-            retryButtonGrid.AddChild(retryButton, 0, 0);
+            grid.AddChild(retryButton, 0, 0);
+            parent.AddChild(grid);
+        }
 
-            rootStackPanel.AddChild(retryButtonGrid);
-
-            // Create a Grid for the final maxDD
-            var finalMaxDDGrid = new Grid { Margin = new Thickness(10) };
-            finalMaxDDGrid.AddColumn().SetWidthToAuto(); // Column for the checkbox
-            finalMaxDDGrid.AddColumn().SetWidthInStars(1); // Column for the TextBox
-            finalMaxDDGrid.AddColumn().SetWidthToAuto(); // Column for the second control (textbox or checkbox)
-
-            // Add label and input controls for final maxDD
-            var finalMaxDDLabel = new TextBlock { Text = "Last Chance (Loss):", Margin = new Thickness(0, 2, 10, 0) };
-            finalMaxDDGrid.AddChild(finalMaxDDLabel, 0, 0);
-
-            finalMaxDD = new TextBox { IsReadOnly = false, TextAlignment = TextAlignment.Right };
-            var finalMaxDDStyle = new Style();
-            finalMaxDDStyle.Set(ControlProperty.BackgroundColor, Color.FromArgb(26, 26, 26), ControlState.DarkTheme);
-            finalMaxDDStyle.Set(ControlProperty.ForegroundColor, Color.FromArgb(255, 255, 255), ControlState.DarkTheme);
-            finalMaxDDStyle.Set(ControlProperty.BackgroundColor, Color.FromArgb(231, 235, 237), ControlState.LightTheme);
-            finalMaxDDStyle.Set(ControlProperty.ForegroundColor, Color.FromArgb(55, 56, 57), ControlState.LightTheme);
-            finalMaxDD.Style = finalMaxDDStyle;
-            finalMaxDDGrid.AddChild(finalMaxDD, 0, 1);
-
-            finalMaxDDOn = new CheckBox { Margin = new Thickness(10, 0, 0, 0) }; // Checkbox for enabling finalMaxDD
-            finalMaxDDGrid.AddChild(finalMaxDDOn, 0, 2);
-
-            rootStackPanel.AddChild(finalMaxDDGrid);
-
-            // Creating a grid for "Equity Stop (Target)" with a similar layout as "Equity Stop (Loss)"
-            var equityStopTargetGrid = new Grid { Margin = new Thickness(10) };
-            equityStopTargetGrid.AddColumn().SetWidthToAuto();  // Column for the checkbox
-            equityStopTargetGrid.AddColumn().SetWidthInStars(1);  // Column for the TextBlock
-            equityStopTargetGrid.AddColumn().SetWidthToAuto();  // Column for the textbox
-
-            // Adding a label for "Equity Stop (Target)"
-            var equityStopTargetLabel = new TextBlock { Text = "Equity Stop (Target):", Margin = new Thickness(0, 2, 10, 0) };
-            equityStopTargetGrid.AddChild(equityStopTargetLabel, 0, 0);
-
-            // Adding a TextBox for the target value
-            maxProfit = new TextBox { IsReadOnly = false, TextAlignment = TextAlignment.Right };
-            var maxProfitStyle = new Style();
-            maxProfitStyle.Set(ControlProperty.BackgroundColor, Color.FromArgb(26, 26, 26), ControlState.DarkTheme);
-            maxProfitStyle.Set(ControlProperty.ForegroundColor, Color.FromArgb(255, 255, 255), ControlState.DarkTheme);
-            maxProfitStyle.Set(ControlProperty.BackgroundColor, Color.FromArgb(231, 235, 237), ControlState.LightTheme);
-            maxProfitStyle.Set(ControlProperty.ForegroundColor, Color.FromArgb(55, 56, 57), ControlState.LightTheme);
-            maxProfit.Style = maxProfitStyle;
-            equityStopTargetGrid.AddChild(maxProfit, 0, 1);
-
-            // Adding the CheckBox for enabling/disabling the equity stop target
-            maxProfitOn = new CheckBox { Margin = new Thickness(10, 0, 0, 0) };
-            equityStopTargetGrid.AddChild(maxProfitOn, 0, 2);
-
-            // Adding the grid to the root stack panel
-            rootStackPanel.AddChild(equityStopTargetGrid);
-
-            var cooldownGrid = new Grid { Margin = new Thickness(10) };
-            cooldownGrid.AddColumn().SetWidthInStars(1); // For the dropdown
-            cooldownGrid.AddColumn().SetWidthToAuto(); // For the countdown text
+        private void AddCooldownControls(StackPanel parent, double comboBoxWidth)
+        {
+            var grid = new Grid { Margin = new Thickness(10) };
+            grid.AddColumn().SetWidthInStars(1);
+            grid.AddColumn().SetWidthToAuto();
 
             cooldownPeriodDropdown = new ComboBox { Margin = new Thickness(10, 10, 0, 10), Width = comboBoxWidth };
             cooldownPeriodDropdown.AddItem("2 minutes");
@@ -231,13 +184,13 @@ namespace cAlgo.Plugins
                 Margin = new Thickness(0, 10, 10, 10),
                 HorizontalAlignment = HorizontalAlignment.Left
             };
-            cooldownGrid.AddChild(countdownText, 0, 0);
-            cooldownGrid.AddChild(cooldownPeriodDropdown, 0, 1);
 
-            rootStackPanel.AddChild(cooldownGrid);
+            grid.AddChild(countdownText, 0, 0);
+            grid.AddChild(cooldownPeriodDropdown, 0, 1);
 
-            block.Child = rootStackPanel;
+            parent.AddChild(grid);
         }
+        //  Controls End Here
 
         private void SaveState(DateTime timestamp, TimeSpan cooldownPeriod)
         {
@@ -325,7 +278,6 @@ namespace cAlgo.Plugins
         private void EndCooldown(bool retryInduced = false)
         {
             countdownText.Text = "Cooldown Timer: 00:00:00";
-            countdownText.ForegroundColor = Color.White;
             isCooldownInProgress = false;
             if (retryInduced == false) isFirstMaxDDTriggered = false; // Reset first maxDD flag if not caused by retry button
             isFinalMaxDDTriggered = false; // Reset second maxDD flag
@@ -354,7 +306,6 @@ namespace cAlgo.Plugins
         {
             if (isCooldownInProgress)
             {
-                countdownText.ForegroundColor = Color.Red;
                 if (DateTime.UtcNow < tradingResumptionTime)
                 {
                     TimeSpan remainingTime = tradingResumptionTime - DateTime.UtcNow;
@@ -455,6 +406,7 @@ namespace cAlgo.Plugins
 
         private void UpdateControlsState(bool isEnabled)
         {
+            countdownText.ForegroundColor = (isEnabled == false) ? Color.Red : Color.White;
             cashOrPerc.IsEnabled = isEnabled;
             maxDDOn.IsEnabled = isEnabled;
             maxDD.IsEnabled = isEnabled;
