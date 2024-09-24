@@ -28,7 +28,6 @@ namespace cAlgo.Plugins
         private bool isFinalMaxDDTriggered = false;
         private string lastTriggeredCondition = string.Empty;
         private TextBlock countdownText;
-        private bool hasPlacedNewTrades = false;
         private const string CooldownTimestampKey = "CooldownTimestamp";
         private const string CooldownPeriodKey = "CooldownPeriod";
 
@@ -269,7 +268,7 @@ namespace cAlgo.Plugins
             string storedTriggerOption = LocalStorage.GetString("TriggerOption");
             string storedIsFirstMaxDDTriggered = LocalStorage.GetString("isFirstMaxDDTriggered");
             string storedIsFinalMaxDDTriggered = LocalStorage.GetString("isFinalMaxDDTriggered");
-
+            
             if (!string.IsNullOrEmpty(storedMaxDDOn)) maxDDOn.IsChecked = bool.Parse(storedMaxDDOn);
 
             if (!string.IsNullOrEmpty(storedMaxDD)) maxDD.Text = storedMaxDD;
@@ -285,9 +284,9 @@ namespace cAlgo.Plugins
             if (!string.IsNullOrEmpty(storedCooldownPeriod)) cooldownPeriodDropdown.SelectedItem = storedCooldownPeriod;
 
             if (!string.IsNullOrEmpty(storedTriggerOption)) triggerComboBox.SelectedItem = storedTriggerOption;
-
+            
             if (!string.IsNullOrEmpty(storedIsFirstMaxDDTriggered)) isFirstMaxDDTriggered = bool.Parse(storedIsFirstMaxDDTriggered);
-
+        
             if (!string.IsNullOrEmpty(storedIsFinalMaxDDTriggered)) isFinalMaxDDTriggered = bool.Parse(storedIsFinalMaxDDTriggered);
 
             if (!string.IsNullOrEmpty(storedTimestamp) && !string.IsNullOrEmpty(storedPeriod))
@@ -360,11 +359,8 @@ namespace cAlgo.Plugins
                     countdownText.Text = $"Cooldown Timer: {remainingTime:hh\\:mm\\:ss}";
                     UpdateControlsState(false); // Disable controls during cooldown
                 }
-                else
-                {
-                    // Cooldown has completed
-                    EndCooldown();
-                }
+                else EndCooldown();
+                
                 // Prevent and close all open positions while still in cooldown
                 foreach (var pos in Positions)
                 {
@@ -440,11 +436,6 @@ namespace cAlgo.Plugins
             {
                 StopTradingAndSetCooldown();
                 lastTriggeredCondition = currentConditionTriggered; // Update last triggered condition
-                // Update flag if trades are placed
-                if (Positions.Count > 0)
-                {
-                    hasPlacedNewTrades = true;
-                }
             }
         }
 
@@ -461,7 +452,6 @@ namespace cAlgo.Plugins
 
             isCooldownInProgress = true;
             UpdateControlsState(false);
-            hasPlacedNewTrades = false;
 
             // Enable retry button after triggering cooldown from first maxDD, disable if final maxDD triggered.
             if (isFirstMaxDDTriggered == true && isFinalMaxDDTriggered == false) retryButton.IsEnabled = true;
