@@ -268,7 +268,7 @@ namespace cAlgo.Plugins
             string storedTriggerOption = LocalStorage.GetString("TriggerOption");
             string storedIsFirstMaxDDTriggered = LocalStorage.GetString("isFirstMaxDDTriggered");
             string storedIsFinalMaxDDTriggered = LocalStorage.GetString("isFinalMaxDDTriggered");
-            
+
             if (!string.IsNullOrEmpty(storedMaxDDOn)) maxDDOn.IsChecked = bool.Parse(storedMaxDDOn);
 
             if (!string.IsNullOrEmpty(storedMaxDD)) maxDD.Text = storedMaxDD;
@@ -284,9 +284,9 @@ namespace cAlgo.Plugins
             if (!string.IsNullOrEmpty(storedCooldownPeriod)) cooldownPeriodDropdown.SelectedItem = storedCooldownPeriod;
 
             if (!string.IsNullOrEmpty(storedTriggerOption)) triggerComboBox.SelectedItem = storedTriggerOption;
-            
+
             if (!string.IsNullOrEmpty(storedIsFirstMaxDDTriggered)) isFirstMaxDDTriggered = bool.Parse(storedIsFirstMaxDDTriggered);
-        
+
             if (!string.IsNullOrEmpty(storedIsFinalMaxDDTriggered)) isFinalMaxDDTriggered = bool.Parse(storedIsFinalMaxDDTriggered);
 
             if (!string.IsNullOrEmpty(storedTimestamp) && !string.IsNullOrEmpty(storedPeriod))
@@ -360,7 +360,7 @@ namespace cAlgo.Plugins
                     UpdateControlsState(false); // Disable controls during cooldown
                 }
                 else EndCooldown();
-                
+
                 // Prevent and close all open positions while still in cooldown
                 foreach (var pos in Positions)
                 {
@@ -399,6 +399,9 @@ namespace cAlgo.Plugins
                 else if (maxProfitOn.IsChecked == true && Account.Equity >= equity + double.Parse(maxProfit.Text))
                 {
                     triggerCooldown = true;
+                    // Reset drawdown triggered flags
+                    isFirstMaxDDTriggered = false;
+                    isFinalMaxDDTriggered = false;
                     currentConditionTriggered = "maxProfit";
                 }
             }
@@ -428,6 +431,9 @@ namespace cAlgo.Plugins
                 else if (maxProfitOn.IsChecked == true && Account.Equity >= maxEquity)
                 {
                     triggerCooldown = true;
+                    // Reset drawdown triggered flags
+                    isFirstMaxDDTriggered = false;
+                    isFinalMaxDDTriggered = false;
                     currentConditionTriggered = "maxProfit";
                 }
             }
