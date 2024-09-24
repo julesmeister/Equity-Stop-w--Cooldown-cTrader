@@ -6,6 +6,9 @@ Removed "Reset Equity" button.
 Rearranged the form to make related components stay in the same row as opposed to several columns which take up space.
 
 New:
+- Auto Stop Loss & Take Profit
+  - There is an automatic stop loss of 150 pips and take profit of about 100 pics when you enter on a trade. This happens when you did not tick the box of stop loss and take profit.
+  - As you are in the trade, you may drag the stop loss and take profit to your desired level.
 - Retry
   - If you get stopped out on your initial defense, the equity stop, you may choose to retry. However, once you reach the last chance threshold, no further retries are allowed for the rest of the session. You can resume trading once the cooldown period ends.
 - Cooldown Timer

@@ -66,6 +66,7 @@ namespace cAlgo.Plugins
             if (position.StopLoss == null)
             {
                 position.ModifyStopLossPips(150);
+                position.ModifyTakeProfitPips(100);
             }
         }
 
