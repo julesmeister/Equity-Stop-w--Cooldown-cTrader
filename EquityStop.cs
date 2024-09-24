@@ -27,6 +27,8 @@ namespace cAlgo.Plugins
         private bool isFirstMaxDDTriggered = false;
         private bool isFinalMaxDDTriggered = false;
         private string lastTriggeredCondition = string.Empty;
+        private bool triggerCooldown = false;
+        private string currentConditionTriggered = string.Empty;
         private TextBlock countdownText;
         private const string CooldownTimestampKey = "CooldownTimestamp";
         private const string CooldownPeriodKey = "CooldownPeriod";
@@ -377,65 +379,35 @@ namespace cAlgo.Plugins
             }
 
             // Normal trading logic
-            bool triggerCooldown = false;
-            string currentConditionTriggered = string.Empty;
+            HandleTriggerConditions();
+        }
 
-            if (cashOrPerc.SelectedItem == "Cash")
+        // Function to handle conditions based on Cash or Percent selection
+        private void HandleTriggerConditions()
+        {
+            triggerCooldown = false;
+            currentConditionTriggered = string.Empty;
+            double maxDDThreshold = cashOrPerc.SelectedItem.ToString() == "Cash" ? equity - double.Parse(maxDD.Text) : equity * (1 - double.Parse(maxDD.Text) / 100);
+            double finalMaxDDThreshold = cashOrPerc.SelectedItem.ToString() == "Cash" ? equity - double.Parse(finalMaxDD.Text) : equity * (1 - double.Parse(finalMaxDD.Text) / 100);
+            double maxProfitThreshold = cashOrPerc.SelectedItem.ToString() == "Cash" ? equity + double.Parse(maxProfit.Text) : equity * (1 + double.Parse(maxProfit.Text) / 100);
+
+            if (!isFirstMaxDDTriggered && maxDDOn.IsChecked == true && Account.Equity <= maxDDThreshold)
             {
-                if (isFirstMaxDDTriggered != true && maxDDOn.IsChecked == true && Account.Equity <= equity - double.Parse(maxDD.Text))
-                {
-                    triggerCooldown = true;
-                    isFirstMaxDDTriggered = true;
-                    maxDDOn.IsChecked = false;
-                    currentConditionTriggered = "maxDD";
-                }
-                else if (isFirstMaxDDTriggered == true && finalMaxDDOn.IsChecked == true && Account.Equity <= equity - double.Parse(finalMaxDD.Text))
-                {
-                    isFinalMaxDDTriggered = true;
-                    // Trigger cooldown or handle second maxDD trigger logic here
-                    triggerCooldown = true;
-                    currentConditionTriggered = "finalDD";
-                }
-                else if (maxProfitOn.IsChecked == true && Account.Equity >= equity + double.Parse(maxProfit.Text))
-                {
-                    triggerCooldown = true;
-                    // Reset drawdown triggered flags
-                    isFirstMaxDDTriggered = false;
-                    isFinalMaxDDTriggered = false;
-                    currentConditionTriggered = "maxProfit";
-                }
+                triggerCooldown = isFirstMaxDDTriggered = true;
+                maxDDOn.IsChecked = false;
+                currentConditionTriggered = "maxDD";
             }
-            else if (cashOrPerc.SelectedItem == "Percent")
+            else if (isFirstMaxDDTriggered && finalMaxDDOn.IsChecked == true && Account.Equity <= finalMaxDDThreshold)
             {
-                // Calculate equity thresholds based on percentage values
-                double minEquity = equity * (1 - double.Parse(maxDD.Text) / 100); // First maxDD threshold
-                double finalMinEquity = equity * (1 - double.Parse(finalMaxDD.Text) / 100); // Final maxDD threshold
-                double maxEquity = equity * (1 + double.Parse(maxProfit.Text) / 100); // Max profit threshold
-
-                // Check for first maxDD condition using percentage threshold
-                if (!isFirstMaxDDTriggered && maxDDOn.IsChecked == true && Account.Equity <= minEquity)
-                {
-                    triggerCooldown = true;
-                    isFirstMaxDDTriggered = true;
-                    maxDDOn.IsChecked = false;
-                    currentConditionTriggered = "maxDD";
-                }
-                // Check for final maxDD condition using percentage threshold
-                else if (isFirstMaxDDTriggered && finalMaxDDOn.IsChecked == true && Account.Equity <= finalMinEquity)
-                {
-                    isFinalMaxDDTriggered = true;
-                    triggerCooldown = true;
-                    currentConditionTriggered = "finalDD";
-                }
-                // Check for max profit condition using percentage threshold
-                else if (maxProfitOn.IsChecked == true && Account.Equity >= maxEquity)
-                {
-                    triggerCooldown = true;
-                    // Reset drawdown triggered flags
-                    isFirstMaxDDTriggered = false;
-                    isFinalMaxDDTriggered = false;
-                    currentConditionTriggered = "maxProfit";
-                }
+                triggerCooldown = isFinalMaxDDTriggered = true;
+                currentConditionTriggered = "finalDD";
+            }
+            else if (maxProfitOn.IsChecked == true && Account.Equity >= maxProfitThreshold)
+            {
+                triggerCooldown = true;
+                isFirstMaxDDTriggered = false;
+                isFinalMaxDDTriggered = false;
+                currentConditionTriggered = "maxProfit";
             }
 
             if (triggerCooldown && currentConditionTriggered != lastTriggeredCondition)
