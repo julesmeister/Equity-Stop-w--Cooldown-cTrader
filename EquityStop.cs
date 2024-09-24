@@ -25,7 +25,7 @@ namespace cAlgo.Plugins
         private DateTime tradingResumptionTime;
         private bool isCooldownInProgress = false;
         private bool isFirstMaxDDTriggered = false;
-        private bool isfinalMaxDDTriggered = false;
+        private bool isFinalMaxDDTriggered = false;
         private string lastTriggeredCondition = string.Empty;
         private TextBlock countdownText;
         private bool hasPlacedNewTrades = false;
@@ -157,7 +157,6 @@ namespace cAlgo.Plugins
                 maxProfitOn.IsChecked = false;
                 isFirstMaxDDTriggered = true;
                 EndCooldown(retryInduced: true);
-                Print("Retry initiated. You can place trades now.");
             };
 
             retryButtonGrid.AddChild(retryButton, 0, 0);
@@ -332,7 +331,7 @@ namespace cAlgo.Plugins
             countdownText.ForegroundColor = Color.White;
             isCooldownInProgress = false;
             if (retryInduced == false) isFirstMaxDDTriggered = false; // Reset first maxDD flag if not caused by retry button
-            isfinalMaxDDTriggered = false; // Reset second maxDD flag
+            isFinalMaxDDTriggered = false; // Reset second maxDD flag
 
             UpdateControlsState(true);
             lastTriggeredCondition = string.Empty;
@@ -399,13 +398,12 @@ namespace cAlgo.Plugins
                     currentConditionTriggered = "maxDD";
                 }
                 else if (isFirstMaxDDTriggered == true && finalMaxDDOn.IsChecked == true && finalMaxDD.Text != string.Empty &&
-                    Account.Equity < equity - Convert.ToDouble(finalMaxDD.Text))
+                    Account.Equity <= equity - double.Parse(finalMaxDD.Text))
                 {
-                    isfinalMaxDDTriggered = true;
+                    isFinalMaxDDTriggered = true;
                     // Trigger cooldown or handle second maxDD trigger logic here
                     triggerCooldown = true;
                     currentConditionTriggered = "finalDD";
-                    retryButton.IsEnabled = false;
                 }
                 else if (maxProfitOn.IsChecked == true && Account.Equity >= equity + double.Parse(maxProfit.Text))
                 {
@@ -430,12 +428,11 @@ namespace cAlgo.Plugins
                 }
                 // Check for final maxDD condition using percentage threshold
                 else if (isFirstMaxDDTriggered && finalMaxDDOn.IsChecked == true && !string.IsNullOrEmpty(finalMaxDD.Text) &&
-                         Account.Equity < finalMinEquity)
+                         Account.Equity <= finalMinEquity)
                 {
-                    isfinalMaxDDTriggered = true;
+                    isFinalMaxDDTriggered = true;
                     triggerCooldown = true;
                     currentConditionTriggered = "finalDD";
-                    retryButton.IsEnabled = false;
                 }
                 // Check for max profit condition using percentage threshold
                 else if (maxProfitOn.IsChecked == true && Account.Equity >= maxEquity)
@@ -472,11 +469,9 @@ namespace cAlgo.Plugins
             UpdateControlsState(false);
             hasPlacedNewTrades = false;
 
-            // Enable retry button after triggering cooldown from first maxDD
-            if (maxDDOn.IsChecked == true)
-            {
-                retryButton.IsEnabled = true;
-            }
+            // Enable retry button after triggering cooldown from first maxDD, disable if final maxDD triggered.
+            if (isFirstMaxDDTriggered == true && isFinalMaxDDTriggered == false) retryButton.IsEnabled = true;
+            else if (isFirstMaxDDTriggered == true && isFinalMaxDDTriggered == true) retryButton.IsEnabled = false;
         }
 
         private TimeSpan GetCooldownPeriod()
