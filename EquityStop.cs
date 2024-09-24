@@ -11,22 +11,13 @@ namespace cAlgo.Plugins
     {
         ViewModel viewModel = new ViewModel();
         double equity;
-        ComboBox cashOrPerc;
-        CheckBox maxDDOn;
-        TextBox maxDD;
-        CheckBox finalMaxDDOn; // New CheckBox for the second maxDD
-        TextBox finalMaxDD; // New TextBox for the second maxDD
+        ComboBox cashOrPerc, triggerComboBox, cooldownPeriodDropdown;
+        CheckBox maxDDOn, maxProfitOn, finalMaxDDOn;
+        TextBox maxDD, maxProfit, finalMaxDD;
         private Button retryButton; // New Button for retrying trades
-        CheckBox maxProfitOn;
-        TextBox maxProfit;
-        ComboBox cooldownPeriodDropdown;
-        ComboBox triggerComboBox;
 
         private DateTime tradingResumptionTime;
-        private bool isCooldownInProgress = false;
-        private bool isFirstMaxDDTriggered = false;
-        private bool isFinalMaxDDTriggered = false;
-        private bool triggerCooldown = false;
+        private bool isCooldownInProgress, isFirstMaxDDTriggered, isFinalMaxDDTriggered, triggerCooldown = false;
         private TextBlock countdownText;
         private const string CooldownTimestampKey = "CooldownTimestamp";
         private const string CooldownPeriodKey = "CooldownPeriod";
@@ -104,10 +95,8 @@ namespace cAlgo.Plugins
             grid.AddChild(textBlock, 0, 0);
 
             comboBox = new ComboBox { Margin = new Thickness(10, 10, 0, 10), Width = width };
-            foreach (var item in items)
-            {
-                comboBox.AddItem(item);
-            }
+            foreach (var item in items) comboBox.AddItem(item);
+
             grid.AddChild(comboBox, 0, 1);
 
             parent.AddChild(grid);
@@ -345,10 +334,7 @@ namespace cAlgo.Plugins
                 isFirstMaxDDTriggered = isFinalMaxDDTriggered = false;
             }
 
-            if (triggerCooldown)
-            {
-                StopTradingAndSetCooldown();
-            }
+            if (triggerCooldown) StopTradingAndSetCooldown();
         }
 
 
@@ -403,8 +389,7 @@ class ViewModel
         get { return _maxDDValue; }
         set
         {
-            if (value == _maxDDValue)
-                return;
+            if (value == _maxDDValue) return;
             _maxDDValue = value;
 
             Changed?.Invoke();
@@ -417,8 +402,7 @@ class ViewModel
         get { return _maxProfitValue; }
         set
         {
-            if (value == _maxProfitValue)
-                return;
+            if (value == _maxProfitValue) return;
             _maxProfitValue = value;
 
             Changed?.Invoke();
