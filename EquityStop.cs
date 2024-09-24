@@ -496,6 +496,7 @@ namespace cAlgo.Plugins
             cashOrPerc.IsEnabled = isEnabled;
             maxDDOn.IsEnabled = isEnabled;
             maxDD.IsEnabled = isEnabled;
+            finalMaxDD.IsEnabled = isEnabled;
             finalMaxDDOn.IsEnabled = isEnabled;
             maxProfitOn.IsEnabled = isEnabled;
             maxProfit.IsEnabled = isEnabled;
