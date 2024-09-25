@@ -143,8 +143,7 @@ namespace cAlgo.Plugins
 
                 // Add the lost equity to maxProfit
                 double equityChange = cashOrPerc.SelectedItem.ToString() == "Cash" ? equityLost : (equityLost / equity) * 100;
-                double currentMaxProfit = double.Parse(maxProfit.Text);
-                maxProfit.Text = (currentMaxProfit + equityChange).ToString();
+                maxProfit.Text = (double.Parse(maxProfit.Text) + Math.Abs(equityChange)).ToString();
                 equity = Account.Equity; // Reset equity to have more leeway for drawdown
                 EndCooldown(retryInduced: true);
             };
