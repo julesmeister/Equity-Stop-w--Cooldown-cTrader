@@ -11,6 +11,7 @@ New:
   - As you are in the trade, you may drag the stop loss and take profit to your desired level.
 - Retry
   - If you get stopped out on your initial defense, the equity stop, you may choose to retry. However, once you reach the last chance threshold, no further retries are allowed for the rest of the session. You can resume trading once the cooldown period ends.
+  - When clicked, the Profit Target will also be increased to account for what was lost.
 - Cooldown Timer
   - Allows to select how long cooldown would last.
   - Automatically closes active trades while cooling down to prevent further trades.
