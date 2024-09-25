@@ -63,14 +63,7 @@ namespace cAlgo.Plugins
 
             if (triggerComboBox.SelectedItem == "Per Trade" && position.NetProfit < 0)
             {
-                // Calculate the equity lost
-                double equityLost = equity - Account.Equity;
-
-                // Add the lost equity to maxProfit
-                double equityChange = cashOrPerc.SelectedItem.ToString() == "Cash" ? equityLost : (equityLost / equity) * 100;
-                maxProfit.Text = (double.Parse(maxProfit.Text) + Math.Abs(equityChange)).ToString();
-
-                equity = Account.Equity; // Reset equity to have more leeway for drawdown
+                ResetEquityCompensateLoss();
             }
         }
 
@@ -158,19 +151,24 @@ namespace cAlgo.Plugins
                 maxDDOn.IsChecked = maxProfitOn.IsChecked = false;
                 isFirstMaxDDTriggered = true;
 
-                // Calculate the equity lost
-                double equityLost = equity - Account.Equity;
-
-                // Add the lost equity to maxProfit
-                double equityChange = cashOrPerc.SelectedItem.ToString() == "Cash" ? equityLost : (equityLost / equity) * 100;
-                maxProfit.Text = (double.Parse(maxProfit.Text) + Math.Abs(equityChange)).ToString();
-
-                equity = Account.Equity; // Reset equity to have more leeway for drawdown
+                ResetEquityCompensateLoss();
                 EndCooldown(retryInduced: true);
             };
 
             grid.AddChild(retryButton, 0, 0);
             parent.AddChild(grid);
+        }
+
+        private void ResetEquityCompensateLoss()
+        {
+            // Calculate the equity lost
+            double equityLost = equity - Account.Equity;
+
+            // Add the lost equity to maxProfit
+            double equityChange = cashOrPerc.SelectedItem.ToString() == "Cash" ? equityLost : (equityLost / equity) * 100;
+            maxProfit.Text = (double.Parse(maxProfit.Text) + Math.Abs(equityChange)).ToString();
+
+            equity = Account.Equity; // Reset equity to have more leeway for drawdown
         }
 
         private void AddCooldownControls(StackPanel parent, double comboBoxWidth)
