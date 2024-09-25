@@ -31,6 +31,7 @@ namespace cAlgo.Plugins
             maxDDOn.IsChecked = finalMaxDDOn.IsChecked = maxProfitOn.IsChecked = true;
             viewModel.MaxDDValue = viewModel.MaxProfitValue = 100;
             Positions.Opened += OnPositionOpened; // Subscribe to the PositionsOpened event
+            Positions.Closed += OnPositionClosed;
             // Subscribe to the TextChanged event for maxDD and maxProfit
             maxDD.TextChanged += (s) => maxDDOn.IsChecked = false;
             finalMaxDD.TextChanged += (s) => finalMaxDDOn.IsChecked = false;
@@ -55,6 +56,24 @@ namespace cAlgo.Plugins
                 position.ModifyTakeProfitPips(100);
             }
         }
+
+        private void OnPositionClosed(PositionClosedEventArgs args)
+        {
+            var position = args.Position;
+
+            if (triggerComboBox.SelectedItem == "Per Trade" && position.NetProfit < 0)
+            {
+                // Calculate the equity lost
+                double equityLost = equity - Account.Equity;
+
+                // Add the lost equity to maxProfit
+                double equityChange = cashOrPerc.SelectedItem.ToString() == "Cash" ? equityLost : (equityLost / equity) * 100;
+                maxProfit.Text = (double.Parse(maxProfit.Text) + Math.Abs(equityChange)).ToString();
+
+                equity = Account.Equity; // Reset equity to have more leeway for drawdown
+            }
+        }
+
 
         protected override void OnStop()
         {
@@ -138,12 +157,14 @@ namespace cAlgo.Plugins
                 retryButton.IsEnabled = false;
                 maxDDOn.IsChecked = maxProfitOn.IsChecked = false;
                 isFirstMaxDDTriggered = true;
+
                 // Calculate the equity lost
                 double equityLost = equity - Account.Equity;
 
                 // Add the lost equity to maxProfit
                 double equityChange = cashOrPerc.SelectedItem.ToString() == "Cash" ? equityLost : (equityLost / equity) * 100;
                 maxProfit.Text = (double.Parse(maxProfit.Text) + Math.Abs(equityChange)).ToString();
+
                 equity = Account.Equity; // Reset equity to have more leeway for drawdown
                 EndCooldown(retryInduced: true);
             };
@@ -273,7 +294,7 @@ namespace cAlgo.Plugins
             LocalStorage.SetString(CooldownPeriodKey, string.Empty);
 
             // Update equity to the current value after cooldown
-            if (triggerComboBox.SelectedItem == "Per Trade") equity = Account.Equity;
+            equity = Account.Equity;
             tradingResumptionTime = DateTime.UtcNow;
             retryButton.IsEnabled = true;
             maxDDOn.IsChecked = true;
