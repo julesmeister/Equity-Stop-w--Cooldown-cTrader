@@ -89,8 +89,7 @@ namespace cAlgo.Plugins
         {
             var position = args.Position;
 
-            if (triggerComboBox.SelectedItem == "Per Trade" && position.NetProfit < 0) ResetEquityCompensateLoss();
-            else if (triggerComboBox.SelectedItem == "Per Trade") equity = Account.Equity; // Reset equity every time trade closes
+            if (triggerComboBox.SelectedItem == "Per Trade") ResetEquityCompensateLoss();
         }
 
 
