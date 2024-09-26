@@ -88,14 +88,8 @@ namespace cAlgo.Plugins
         {
             var position = args.Position;
 
-            if (triggerComboBox.SelectedItem == "Per Trade" && position.NetProfit < 0)
-            {
-                ResetEquityCompensateLoss();
-            }
-            else if (triggerComboBox.SelectedItem == "Per Trade")
-            {
-                equity = Account.Equity; // Reset equity every time trade closes
-            }
+            if (triggerComboBox.SelectedItem == "Per Trade" && position.NetProfit < 0) ResetEquityCompensateLoss();
+            else if (triggerComboBox.SelectedItem == "Per Trade") equity = Account.Equity; // Reset equity every time trade closes
         }
 
 
@@ -117,7 +111,7 @@ namespace cAlgo.Plugins
             var rootStackPanel = new StackPanel { Margin = new Thickness(10) };
             double comboBoxWidth = 80;
 
-            AddButtonSelectionGrid(rootStackPanel);
+            AddButtonSelectionGrid(rootStackPanel); // Multiplier
             AddSelectionGrid(rootStackPanel, "Choose Between Cash and Percent:", ref cashOrPerc, new[] { "Cash", "Percent" }, comboBoxWidth); // Add Cash or Percent selection controls
             AddSelectionGrid(rootStackPanel, "Trigger:", ref triggerComboBox, new[] { "Per Trade", "Per Session" }, comboBoxWidth); // Add Trigger selection controls
             AddEquityStopGrid(rootStackPanel, "Equity Stop (Loss):", ref maxDD, ref maxDDOn); // Add Equity Stop (Loss) controls
@@ -131,7 +125,7 @@ namespace cAlgo.Plugins
 
         private void AddButtonSelectionGrid(StackPanel parent)
         {
-            var grid = new Grid { Margin = new Thickness(10, 0, 10, 0) };
+            var grid = new Grid { Margin = new Thickness(0, 0, 0, 0) };
 
             // Create 5 equal columns for buttons
             for (int i = 0; i < 5; i++)
@@ -144,14 +138,7 @@ namespace cAlgo.Plugins
 
             for (int i = 0; i < lotSizes.Length; i++)
             {
-                var button = new Button
-                {
-                    Text = lotSizes[i],
-                    BackgroundColor = Color.Black,
-                    ForegroundColor = Color.White,   // White text
-                    Margin = new Thickness(5),       // Margin around the button
-                    Padding = new Thickness(10),     // Padding for button content
-                };
+                var button = new Button { Text = lotSizes[i], BackgroundColor = Color.Black, Margin = new Thickness(5), Padding = new Thickness(10), };
 
                 // Store button in array
                 lotButtons[i] = button;
@@ -272,12 +259,7 @@ namespace cAlgo.Plugins
             cooldownPeriodDropdown.AddItem("5 hours");
             cooldownPeriodDropdown.AddItem("12 hours");
 
-            countdownText = new TextBlock
-            {
-                Text = "Cooldown Timer: 00:00:00",
-                Margin = new Thickness(0, 10, 10, 10),
-                HorizontalAlignment = HorizontalAlignment.Left
-            };
+            countdownText = new TextBlock { Text = "Cooldown Timer: 00:00:00", Margin = new Thickness(0, 10, 10, 10), HorizontalAlignment = HorizontalAlignment.Left };
 
             grid.AddChild(countdownText, 0, 0);
             grid.AddChild(cooldownPeriodDropdown, 0, 1);
