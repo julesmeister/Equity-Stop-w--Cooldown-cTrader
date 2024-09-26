@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using cAlgo.API;
 using cAlgo.API.Collections;
 using cAlgo.API.Indicators;
@@ -19,6 +20,8 @@ namespace cAlgo.Plugins
         private DateTime tradingResumptionTime;
         private bool isCooldownInProgress, isFirstMaxDDTriggered, isFinalMaxDDTriggered, triggerCooldown = false;
         private TextBlock countdownText;
+        private Button[] lotButtons = new Button[5]; // Lot size buttons as multiplier
+        private bool isAddingOrders = false; // Flag to prevent recursion when adding orders from the multiplier function
         private const string CooldownTimestampKey = "CooldownTimestamp";
         private const string CooldownPeriodKey = "CooldownPeriod";
 
@@ -49,11 +52,35 @@ namespace cAlgo.Plugins
         {
             var position = args.Position;
 
-            // Check if the position has no Stop Loss
+            // Set stop loss and take profit if not already set
             if (position.StopLoss == null)
             {
                 position.ModifyStopLossPips(150);
                 position.ModifyTakeProfitPips(100);
+            }
+
+            if (isAddingOrders) return; // Avoid recursion
+
+            // Get the currently selected lot size from the buttons
+            double selectedLotSize = double.Parse(lotButtons.FirstOrDefault(btn => btn.BackgroundColor == Color.White)?.Text ?? "10");
+
+            // Check the opened position's lot size
+            double openedLotSize = position.Quantity;
+
+            // Determine additional orders based on selected lot size
+            int additionalOrders = (openedLotSize == 10) ? Math.Max((int)((selectedLotSize / 10) - 1), 0) : 0;
+
+            if (additionalOrders > 0)
+            {
+                isAddingOrders = true; // Set the flag
+                Positions.Opened -= OnPositionOpened; // Temporarily unsubscribe
+
+                // Open all additional orders at once
+                var totalVolume = position.Symbol.QuantityToVolumeInUnits(openedLotSize * additionalOrders);
+                var result = ExecuteMarketOrder(position.TradeType, position.Symbol.ToString(), totalVolume, "New Orders", 150, 100);
+
+                isAddingOrders = false; // Reset the flag
+                Positions.Opened += OnPositionOpened; // Re-subscribe
             }
         }
 
@@ -85,11 +112,12 @@ namespace cAlgo.Plugins
             block.IsExpanded = true;
             block.IsDetachable = false;
             block.Index = 1;
-            block.Height = 300;
+            block.Height = 330;
 
             var rootStackPanel = new StackPanel { Margin = new Thickness(10) };
             double comboBoxWidth = 80;
 
+            AddButtonSelectionGrid(rootStackPanel);
             AddSelectionGrid(rootStackPanel, "Choose Between Cash and Percent:", ref cashOrPerc, new[] { "Cash", "Percent" }, comboBoxWidth); // Add Cash or Percent selection controls
             AddSelectionGrid(rootStackPanel, "Trigger:", ref triggerComboBox, new[] { "Per Trade", "Per Session" }, comboBoxWidth); // Add Trigger selection controls
             AddEquityStopGrid(rootStackPanel, "Equity Stop (Loss):", ref maxDD, ref maxDDOn); // Add Equity Stop (Loss) controls
@@ -100,6 +128,64 @@ namespace cAlgo.Plugins
 
             block.Child = rootStackPanel;
         }
+
+        private void AddButtonSelectionGrid(StackPanel parent)
+        {
+            var grid = new Grid { Margin = new Thickness(10, 0, 10, 0) };
+
+            // Create 5 equal columns for buttons
+            for (int i = 0; i < 5; i++)
+            {
+                grid.AddColumn().SetWidthInStars(1); // Each button gets equal width
+            }
+
+            // Create buttons for lot sizes 10, 20, 30, 40, 50
+            string[] lotSizes = { "10", "20", "30", "40", "50" };
+
+            for (int i = 0; i < lotSizes.Length; i++)
+            {
+                var button = new Button
+                {
+                    Text = lotSizes[i],
+                    BackgroundColor = Color.Black,
+                    ForegroundColor = Color.White,   // White text
+                    Margin = new Thickness(5),       // Margin around the button
+                    Padding = new Thickness(10),     // Padding for button content
+                };
+
+                // Store button in array
+                lotButtons[i] = button;
+
+                // Handle click event for each button
+                button.Click += (e) =>
+                {
+                    // Change lot size logic based on button label
+                    double newLotSize = double.Parse(button.Text);
+
+                    // Reset all button styles
+                    foreach (var btn in lotButtons)
+                    {
+                        btn.BackgroundColor = Color.Black; // Reset background to black for unselected buttons
+                        btn.ForegroundColor = Color.White; // Reset border color for unselected buttons
+                    }
+
+                    // Set the style for the selected button
+                    button.BackgroundColor = Color.White; // Change background color to gray
+                    button.ForegroundColor = Color.Black; // Change border color to white
+                };
+
+                // Add button to the grid (1-row layout, button in ith column)
+                grid.AddChild(button, 0, i);
+            }
+
+            // Set the first button as selected by default
+            lotButtons[0].BackgroundColor = Color.White; // Change background color to gray
+            lotButtons[0].ForegroundColor = Color.Black; // Change border color to white
+
+            // Add grid to parent panel
+            parent.AddChild(grid);
+        }
+
 
         private void AddSelectionGrid(StackPanel parent, string label, ref ComboBox comboBox, string[] items, double width)
         {
