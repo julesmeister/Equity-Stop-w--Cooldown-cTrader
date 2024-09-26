@@ -55,7 +55,7 @@ namespace cAlgo.Plugins
             // Set stop loss and take profit if not already set
             if (position.StopLoss == null)
             {
-                position.ModifyStopLossPips(150);
+                position.ModifyStopLossPips(100);
                 position.ModifyTakeProfitPips(100);
             }
         
@@ -77,7 +77,7 @@ namespace cAlgo.Plugins
         
                 // Open all additional orders at once
                 var totalVolume = position.Symbol.QuantityToVolumeInUnits(openedLotSize * additionalOrders);
-                var result = ExecuteMarketOrder(position.TradeType, position.Symbol.ToString(), totalVolume, "New Orders", 150, 100);
+                var result = ExecuteMarketOrder(position.TradeType, position.Symbol.ToString(), totalVolume, "New Orders", 100, 100);
         
                 isAddingOrders = false; // Reset the flag
                 Positions.Opened += OnPositionOpened; // Re-subscribe
@@ -128,10 +128,7 @@ namespace cAlgo.Plugins
             var grid = new Grid { Margin = new Thickness(0, 0, 0, 0) };
         
             // Create 5 equal columns for buttons
-            for (int i = 0; i < 5; i++)
-            {
-                grid.AddColumn().SetWidthInStars(1); // Each button gets equal width
-            }
+            for (int i = 0; i < 5; i++) grid.AddColumn().SetWidthInStars(1); // Each button gets equal width
         
             // Create buttons for lot sizes 10, 20, 30, 40, 50
             string[] lotSizes = { "10", "20", "30", "40", "50" };
