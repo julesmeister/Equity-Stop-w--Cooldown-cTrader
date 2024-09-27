@@ -11,7 +11,7 @@ namespace cAlgo.Plugins
     public class EquityStop : Plugin
     {
         ViewModel viewModel = new ViewModel();
-        double equity, initialEquity;
+        double equity, initialEquity, todaysRealizedGains, maxProfitThreshold;
         ComboBox cashOrPerc, triggerComboBox, cooldownPeriodDropdown;
         CheckBox maxDDOn, maxProfitOn, finalMaxDDOn;
         TextBox maxDD, maxProfit, finalMaxDD;
@@ -230,6 +230,7 @@ namespace cAlgo.Plugins
         private void ResetEquityCompensateLoss() {
             // Calculate the equity lost
             double equityLost = equity - Account.Equity;
+            todaysRealizedGains = History.Where(pos => pos.ClosingTime >= DateTime.Today).Sum(pos => pos.GrossProfit); // Sum up the gross profits
         
             // Add the lost equity to maxProfit
             double equityChange = cashOrPerc.SelectedItem.ToString() == "Cash" ? equityLost : (equityLost / equity) * 100;
@@ -330,7 +331,10 @@ namespace cAlgo.Plugins
                         tradingResumptionTime = expectedResumptionTime;
                         isCooldownInProgress = true;
                     }
-                    else EndCooldown(); // If the cooldown period has already passed
+                    else { 
+                        maxProfitThreshold = cashOrPerc.SelectedItem.ToString() == "Cash" ? double.Parse(maxProfit.Text) : initialEquity * (1 + double.Parse(maxProfit.Text) / 100);
+                        EndCooldown();
+                    } // If the cooldown period has already passed
                 }
                 else
                 {
@@ -357,7 +361,9 @@ namespace cAlgo.Plugins
             equity = Account.Equity;
             tradingResumptionTime = DateTime.UtcNow;
             retryButton.IsEnabled = true;
-            maxDDOn.IsChecked = true;
+            maxDDOn.IsChecked = true; 
+            // Disable maxProfitOn when todaysRealizedGains >= maxProfitThreshold
+            if (todaysRealizedGains >= maxProfitThreshold) maxProfitOn.IsEnabled = false;
         }
 
 
@@ -404,18 +410,15 @@ namespace cAlgo.Plugins
             triggerCooldown = false;
             double maxDDThreshold = cashOrPerc.SelectedItem.ToString() == "Cash" ? equity - double.Parse(maxDD.Text) : equity * (1 - double.Parse(maxDD.Text) / 100);
             double finalMaxDDThreshold = cashOrPerc.SelectedItem.ToString() == "Cash" ? equity - double.Parse(finalMaxDD.Text) : equity * (1 - double.Parse(finalMaxDD.Text) / 100);
-            double maxProfitThreshold = cashOrPerc.SelectedItem.ToString() == "Cash" ? initialEquity + double.Parse(maxProfit.Text) : initialEquity * (1 + double.Parse(maxProfit.Text) / 100);
-        
+            maxProfitThreshold = cashOrPerc.SelectedItem.ToString() == "Cash" ? double.Parse(maxProfit.Text) : initialEquity * (1 + double.Parse(maxProfit.Text) / 100);
+
             if (!isFirstMaxDDTriggered && maxDDOn.IsChecked == true && Account.Equity <= maxDDThreshold)
             {
                 triggerCooldown = isFirstMaxDDTriggered = true;
                 maxDDOn.IsChecked = false;
             }
-            else if (isFirstMaxDDTriggered && finalMaxDDOn.IsChecked == true && Account.Equity <= finalMaxDDThreshold)
-            {
-                triggerCooldown = isFinalMaxDDTriggered = true;
-            }
-            else if (maxProfitOn.IsChecked == true && Account.Equity >= maxProfitThreshold)
+            else if (isFirstMaxDDTriggered && finalMaxDDOn.IsChecked == true && Account.Equity <= finalMaxDDThreshold) triggerCooldown = isFinalMaxDDTriggered = true;
+            else if (maxProfitOn.IsChecked == true && todaysRealizedGains >= maxProfitThreshold)
             {
                 triggerCooldown = true;
                 retryButton.IsEnabled = false;
