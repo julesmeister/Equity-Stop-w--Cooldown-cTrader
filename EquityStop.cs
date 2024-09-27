@@ -92,6 +92,7 @@ namespace cAlgo.Plugins
         protected override void OnStop()
         {
             Positions.Opened -= OnPositionOpened;
+            Positions.Closed -= OnPositionClosed;
             SaveState(tradingResumptionTime, GetCooldownPeriod());
         }
 
