@@ -55,8 +55,8 @@ namespace cAlgo.Plugins
             // Set stop loss and take profit if not already set
             if (position.StopLoss == null)
             {
-                position.ModifyStopLossPips(100);
-                position.ModifyTakeProfitPips(100);
+                Task.Run(() => position.ModifyStopLossPips(100));
+                Task.Run(() => position.ModifyTakeProfitPips(100));
             }
 
             if (isAddingOrders) return; // Avoid recursion
