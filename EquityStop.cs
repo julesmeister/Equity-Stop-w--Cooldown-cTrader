@@ -77,7 +77,7 @@ namespace cAlgo.Plugins
 
                 // Open all additional orders at once
                 var totalVolume = position.Symbol.QuantityToVolumeInUnits(openedLotSize * additionalOrders);
-                var result = ExecuteMarketOrder(position.TradeType, position.Symbol.ToString(), totalVolume, "New Orders", 100, 100);
+                Task.Run(() => ExecuteMarketOrder(position.TradeType, position.Symbol.ToString(), totalVolume, "New Orders", 100, 100));
 
                 isAddingOrders = false; // Reset the flag
                 Positions.Opened += OnPositionOpened; // Re-subscribe
