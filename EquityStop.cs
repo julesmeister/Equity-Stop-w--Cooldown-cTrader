@@ -364,7 +364,7 @@ namespace cAlgo.Plugins
             retryButton.IsEnabled = true;
             maxDDOn.IsChecked = true;
             // Disable maxProfitOn when todaysRealizedGains >= maxProfitThreshold
-            if (todaysRealizedGains >= maxProfitThreshold) maxProfitOn.IsEnabled = false;
+            if (todaysRealizedGains >= maxProfitThreshold) maxProfitOn.IsChecked = false;
         }
 
 
@@ -424,6 +424,10 @@ namespace cAlgo.Plugins
                 triggerCooldown = true;
                 retryButton.IsEnabled = false;
                 isFirstMaxDDTriggered = isFinalMaxDDTriggered = false;
+            }
+            else if (maxProfitOn.IsChecked == false)
+            {
+                if (!History.Any(pos => pos.ClosingTime >= DateTime.Today)) maxProfitOn.IsChecked = true; // If there are no closed trades, enable maxProfitOn
             }
 
             if (triggerCooldown) StopTradingAndSetCooldown();
