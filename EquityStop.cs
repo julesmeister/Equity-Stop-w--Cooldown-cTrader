@@ -4,6 +4,7 @@ using cAlgo.API;
 using cAlgo.API.Collections;
 using cAlgo.API.Indicators;
 using cAlgo.API.Internals;
+using System.Threading.Tasks;
 
 namespace cAlgo.Plugins
 {
@@ -425,10 +426,6 @@ namespace cAlgo.Plugins
                 retryButton.IsEnabled = false;
                 isFirstMaxDDTriggered = isFinalMaxDDTriggered = false;
             }
-            else if (maxProfitOn.IsChecked == false)
-            {
-                if (!History.Any(pos => pos.ClosingTime >= DateTime.Today)) maxProfitOn.IsChecked = true; // If there are no closed trades, enable maxProfitOn
-            }
 
             if (triggerCooldown) StopTradingAndSetCooldown();
         }
@@ -439,7 +436,7 @@ namespace cAlgo.Plugins
         {
             if (isCooldownInProgress) return; // Exit if already in cooldown
 
-            foreach (var pos in Positions) ClosePosition(pos);
+            foreach (var pos in Positions) Task.Run(() => ClosePosition(pos)); // Close all asynchronously
 
             tradingResumptionTime = DateTime.UtcNow + GetCooldownPeriod();
             SaveState(tradingResumptionTime, GetCooldownPeriod());
