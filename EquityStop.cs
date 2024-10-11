@@ -293,7 +293,7 @@ namespace cAlgo.Plugins
             if (!string.IsNullOrEmpty(finalMaxDDStoredValue)) finalMaxDD.Text = finalMaxDDStoredValue;
 
             todaysRealizedGains = History.Where(pos => pos.ClosingTime >= DateTime.Today).Sum(pos => pos.GrossProfit); // Sum up the gross profits
-            maxProfit.Text = todaysRealizedGains == 0 ? (initialEquity + 300).ToString() : initialEquity.ToString(); // Initialize maxProfit to AccountEquity + 300
+            maxProfit.Text = todaysRealizedGains <= 0 ? (initialEquity + 300).ToString() : initialEquity.ToString(); // Initialize maxProfit to AccountEquity + 300
 
             if (!string.IsNullOrEmpty(storedCooldownPeriod)) cooldownPeriodDropdown.SelectedItem = storedCooldownPeriod;
 
