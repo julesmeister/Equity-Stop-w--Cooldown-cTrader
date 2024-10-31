@@ -105,7 +105,7 @@ namespace cAlgo.Plugins
             block.IsExpanded = true;
             block.IsDetachable = false;
             block.Index = 1;
-            block.Height = 420; // 330 for 10-50, 360 for martingale, 420 for both
+            block.Height = 390;
 
             var rootStackPanel = new StackPanel { Margin = new Thickness(10) };
             double comboBoxWidth = 80;
@@ -160,97 +160,54 @@ namespace cAlgo.Plugins
 
         private void InitializeLotButtons()
         {
-            foreach (var button in lotButtons) button.Click += (e) => HandleButtonClick(button);
-        }
-
-        private void HandleButtonClick(Button button)
-        {
-            // Reset all button styles
-            foreach (var btn in lotButtons)
+            foreach (var button in lotButtons)
             {
-                btn.BackgroundColor = Color.Black;
-                btn.ForegroundColor = Color.White;
-            }
+                button.Click += (e) =>
+                {
+                    // Reset all button styles
+                    foreach (var btn in lotButtons)
+                    {
+                        btn.BackgroundColor = Color.Black;
+                        btn.ForegroundColor = Color.White;
+                    }
 
-            // Set the style for the selected button
-            button.BackgroundColor = Color.White;
-            button.ForegroundColor = Color.Black;
+                    // Set the style for the selected button
+                    button.BackgroundColor = Color.White;
+                    button.ForegroundColor = Color.Black;
+                };
+            }
         }
+
 
         // X2 Martingale Button and functionalities
 
         private void X2Grid(StackPanel parent)
         {
-            var grid = new Grid { Margin = new Thickness(10, 0, 10, 0) };
+            var grid = new Grid { Margin = new Thickness(10, 10, 10, 10) };
 
-            // Create columns for the first row (Left button, Lot Size display, Right button)
-            grid.AddColumn().SetWidthInStars(1); // Left button
-            grid.AddColumn().SetWidthInPixels(10); // space
-            grid.AddColumn().SetWidthInStars(1); // Right button
-
-            // First Row - Adjust Lot Size
-            var decreaseLotButton = new Button
-            {
-                Text = "-",
-                BackgroundColor = Color.Black,
-                Margin = new Thickness(0, 5, 0, 10),
-                Padding = new Thickness(10, 5, 10, 10),
-                ForegroundColor = Color.White,
-                FontSize = 18
-            };
-            var increaseLotButton = new Button
-            {
-                Text = "+",
-                BackgroundColor = Color.Black,
-                Margin = new Thickness(0, 5, 0, 10),
-                Padding = new Thickness(10, 7, 10, 8),
-                ForegroundColor = Color.White,
-                FontSize = 18
-            };
-
-
-            grid.AddChild(decreaseLotButton, 0, 0); // Left button
-            grid.AddChild(increaseLotButton, 0, 2); // Right button
-
-            // Add first row to parent panel
-            parent.AddChild(grid);
-
-            // Define a 3-column grid layout: Sell Button | Spacer | Buy Button
-            var actionGrid = new Grid { Margin = new Thickness(10, 0, 10, 0) };
-            actionGrid.AddColumn().SetWidthInStars(1); // Sell button
-            actionGrid.AddColumn().SetWidthInPixels(10);       // Spacer column
-            actionGrid.AddColumn().SetWidthInStars(1); // Buy button
+            // Define columns for Sell, Spacer, -, Spacer, +, Spacer, Buy
+            grid.AddColumn().SetWidthInStars(2); // Sell button
+            grid.AddColumn().SetWidthInPixels(10); // Spacer
+            grid.AddColumn().SetWidthInPixels(40); // Decrease (-) button
+            grid.AddColumn().SetWidthInPixels(10); // Spacer
+            grid.AddColumn().SetWidthInPixels(40); // Increase (+) button
+            grid.AddColumn().SetWidthInPixels(10); // Spacer
+            grid.AddColumn().SetWidthInStars(2); // Buy button
 
             // Create Sell button
-            var sellButton = new Button
-            {
-                Text = "Sell",
-                BackgroundColor = Color.Red,
-                ForegroundColor = Color.White,
-                Margin = new Thickness(0), // No margin needed, spacer column will handle spacing
-                Padding = new Thickness(10),
-                HorizontalAlignment = HorizontalAlignment.Stretch,
-                FontSize = 14
-            };
+            var sellButton = SecondRowButton("Sell", Color.Red);
+            var decreaseLotButton = SecondRowButton("-", Color.Black);
+            var increaseLotButton = SecondRowButton("+", Color.Black);
+            var buyButton = SecondRowButton("Buy", Color.Green);
 
-            // Create Buy button
-            var buyButton = new Button
-            {
-                Text = "Buy",
-                BackgroundColor = Color.Green,
-                ForegroundColor = Color.White,
-                Margin = new Thickness(0), // No margin needed, spacer column will handle spacing
-                Padding = new Thickness(10),
-                HorizontalAlignment = HorizontalAlignment.Stretch,
-                FontSize = 14
-            };
+            // Add buttons to grid in the specified order
+            grid.AddChild(sellButton, 0, 0); // Sell button
+            grid.AddChild(decreaseLotButton, 0, 2); // Decrease (-) button
+            grid.AddChild(increaseLotButton, 0, 4); // Increase (+) button
+            grid.AddChild(buyButton, 0, 6); // Buy button
 
-            // Add buttons to the grid with spacer
-            actionGrid.AddChild(sellButton, 0, 0); // Left side
-            actionGrid.AddChild(buyButton, 0, 2);  // Right side
-
-            // Add second row to parent panel
-            parent.AddChild(actionGrid);
+            // Add grid to parent panel
+            parent.AddChild(grid);
 
             // Event handlers for adjusting lot size
             decreaseLotButton.Click += (e) =>
@@ -262,8 +219,8 @@ namespace cAlgo.Plugins
 
             increaseLotButton.Click += (e) =>
             {
-                // Double the current lot size
-                currentLotSize = int.Parse(lotButtons[0].Text) * 2;
+                // Double the current lot size with a max limit of 32
+                currentLotSize = Math.Min(32, int.Parse(lotButtons[0].Text) * 2);
                 lotButtons[0].Text = currentLotSize.ToString();
             };
 
@@ -271,6 +228,21 @@ namespace cAlgo.Plugins
             sellButton.Click += (e) => HandleTrade("Sell", double.Parse(lotButtons.FirstOrDefault(btn => btn.BackgroundColor == Color.White)?.Text ?? "10"));
             buyButton.Click += (e) => HandleTrade("Buy", double.Parse(lotButtons.FirstOrDefault(btn => btn.BackgroundColor == Color.White)?.Text ?? "10"));
         }
+
+        // Helper 2nd Row Buttons
+        private Button SecondRowButton(string text, Color backgroundColor, double fontSize = 18)
+        {
+            return new Button
+            {
+                Text = text,
+                BackgroundColor = backgroundColor,
+                ForegroundColor = Color.White,
+                Padding = new Thickness(10),
+                FontSize = fontSize,
+                HorizontalAlignment = HorizontalAlignment.Stretch
+            };
+        }
+
 
         // Sample handler for Buy/Sell actions
         private void HandleTrade(string action, double lotSize)
