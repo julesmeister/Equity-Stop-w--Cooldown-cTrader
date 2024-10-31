@@ -1,6 +1,6 @@
 # A Modification of [Acronew's Equity Stop](https://ctrader.com/algos/show/4339/)
 
-![alt text](equity-stop.png)
+![alt text](equity-stop-order.png)
 
 Removed "Reset Equity" button.
 Rearranged the form to make related components stay in the same row as opposed to several columns which take up space.
@@ -30,3 +30,6 @@ New:
     - Scenario:
       -  You place multiple trades in a session. The first trade loses 10, the second loses 5, and the third loses 7, totaling 22 in losses. If your Equity Stop input is 20, the system will check the overall sum of PnL for the session, not just the losses. If the total sum of PnL (including any profits) goes below the Equity Stop input threshold, the system will stop trading for the rest of the session and trigger the cooldown.
      -  Bug: During a cooldown period, trading is completely halted for the entire session, and you cannot place any orders. When the cooldown period ends, it erroneously restarts the countdown, preventing you from resuming trades until the cooldown finishes again. To place orders, you need to start a new session. Once the cooldown period is complete in the new session, it will not restart, and you can resume trading as usual.
+- The decrease and increase button allows the first lot size button to be doubled or halved. Allowing for a martingale approach.
+- The Buy and Sell buttons will execute on the lot size selected.
+- This plugin is tailored for "USTEC", edit this string depending on which instrument you are trading with.
