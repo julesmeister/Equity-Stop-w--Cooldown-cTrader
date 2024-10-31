@@ -36,9 +36,9 @@ namespace cAlgo.Plugins
             Positions.Opened += OnPositionOpened; // Subscribe to the PositionsOpened event
             Positions.Closed += OnPositionClosed;
             // Subscribe to the TextChanged event for maxDD and maxProfit
-            maxDD.TextChanged += (s) => maxDDOn.IsChecked = false;
-            finalMaxDD.TextChanged += (s) => finalMaxDDOn.IsChecked = false;
-            maxProfit.TextChanged += (s) => maxProfitOn.IsChecked = false;
+            maxDD.TextChanged += (s) => maxDDOn.IsChecked = isCooldownInProgress ? maxDDOn.IsChecked : false;
+            finalMaxDD.TextChanged += (s) => finalMaxDDOn.IsChecked = isCooldownInProgress ? finalMaxDDOn.IsChecked : false;
+            maxProfit.TextChanged += (s) => maxProfitOn.IsChecked = isCooldownInProgress ? maxProfitOn.IsChecked : false;
             // Set default cooldown to 2 minutes
             cooldownPeriodDropdown.SelectedItem = "2 minutes";
             triggerComboBox.SelectedItem = "Per Session"; // Default trigger option
@@ -151,8 +151,8 @@ namespace cAlgo.Plugins
             }
 
             // Set the first button as selected by default
-            lotButtons[0].BackgroundColor = Color.White; // Change background color to gray
-            lotButtons[0].ForegroundColor = Color.Black; // Change border color to white
+            lotButtons[1].BackgroundColor = Color.White; // Change background color to gray
+            lotButtons[1].ForegroundColor = Color.Black; // Change border color to white
 
             // Add grid to parent panel
             parent.AddChild(grid);
@@ -576,7 +576,7 @@ namespace cAlgo.Plugins
         private void UpdateControlsState(bool isEnabled)
         {
             countdownText.ForegroundColor = (isEnabled == false) ? Color.Red : Color.White;
-            cashOrPerc.IsEnabled = maxDDOn.IsEnabled = maxDD.IsEnabled = finalMaxDD.IsEnabled = finalMaxDDOn.IsEnabled = maxProfitOn.IsEnabled = maxProfit.IsEnabled = cooldownPeriodDropdown.IsEnabled = triggerComboBox.IsEnabled = isEnabled;
+            cashOrPerc.IsEnabled = maxDDOn.IsEnabled = finalMaxDDOn.IsEnabled = maxProfitOn.IsEnabled = cooldownPeriodDropdown.IsEnabled = triggerComboBox.IsEnabled = isEnabled;
         }
     }
 }
