@@ -366,7 +366,7 @@ namespace cAlgo.Plugins
         private void IncreaseDecreaseButtonListeners()
         {
             // Helper function for increasing or decreasing values
-            void AdjustValue(TextBox textBox, Func<double, double> operation)
+            static void AdjustValue(TextBox textBox, Func<double, double> operation)
             {
                 if (double.TryParse(textBox.Text, out double currentValue))
                 {
