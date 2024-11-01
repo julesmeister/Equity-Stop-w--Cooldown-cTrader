@@ -365,63 +365,26 @@ namespace cAlgo.Plugins
 
         private void IncreaseDecreaseButtonListeners()
         {
-            // Configure decrease and increase button listeners for maxDD
-            decreaseButtonMaxDD.Click += (e) =>
+            // Helper function for increasing or decreasing values
+            void AdjustValue(TextBox textBox, Func<double, double> operation)
             {
-                if (double.TryParse(maxDD.Text, out double currentValue))
+                if (double.TryParse(textBox.Text, out double currentValue))
                 {
-                    currentValue *= 0.5;
-                    maxDD.Text = currentValue.ToString("0.##");
+                    textBox.Text = operation(currentValue).ToString("0.##");
                 }
-            };
+            }
 
-            increaseButtonMaxDD.Click += (e) =>
-            {
-                if (double.TryParse(maxDD.Text, out double currentValue))
-                {
-                    currentValue *= 2;
-                    maxDD.Text = currentValue.ToString("0.##");
-                }
-            };
+            // Set up button listeners using the helper function
+            decreaseButtonMaxDD.Click += (e) => AdjustValue(maxDD, x => x * 0.5);
+            increaseButtonMaxDD.Click += (e) => AdjustValue(maxDD, x => x * 2);
 
-            // Configure decrease and increase button listeners for maxProfit
-            decreaseButtonMaxProfit.Click += (e) =>
-            {
-                if (double.TryParse(maxProfit.Text, out double currentValue))
-                {
-                    currentValue -= 66;
-                    maxProfit.Text = currentValue.ToString("0.##");
-                }
-            };
+            decreaseButtonMaxProfit.Click += (e) => AdjustValue(maxProfit, x => x - 66);
+            increaseButtonMaxProfit.Click += (e) => AdjustValue(maxProfit, x => x + 66);
 
-            increaseButtonMaxProfit.Click += (e) =>
-            {
-                if (double.TryParse(maxProfit.Text, out double currentValue))
-                {
-                    currentValue += 66;
-                    maxProfit.Text = currentValue.ToString("0.##");
-                }
-            };
-
-            // Configure decrease and increase button listeners for finalMaxDD
-            decreaseButtonFinalMaxDD.Click += (e) =>
-            {
-                if (double.TryParse(finalMaxDD.Text, out double currentValue))
-                {
-                    currentValue *= 0.5;
-                    finalMaxDD.Text = currentValue.ToString("0.##");
-                }
-            };
-
-            increaseButtonFinalMaxDD.Click += (e) =>
-            {
-                if (double.TryParse(finalMaxDD.Text, out double currentValue))
-                {
-                    currentValue *= 2;
-                    finalMaxDD.Text = currentValue.ToString("0.##");
-                }
-            };
+            decreaseButtonFinalMaxDD.Click += (e) => AdjustValue(finalMaxDD, x => x * 0.5);
+            increaseButtonFinalMaxDD.Click += (e) => AdjustValue(finalMaxDD, x => x * 2);
         }
+
 
         private void AddRetryButton(StackPanel parent)
         {
