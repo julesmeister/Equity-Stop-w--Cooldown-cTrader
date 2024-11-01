@@ -1,6 +1,6 @@
 # A Modification of [Acronew's Equity Stop](https://ctrader.com/algos/show/4339/)
 
-![alt text](equity-stop-order.png)
+![alt text](equity-stop-order-sl.png)
 
 Removed "Reset Equity" button.
 Rearranged the form to make related components stay in the same row as opposed to several columns which take up space.
@@ -14,6 +14,7 @@ New:
 - The decrease and increase button allows the first lot size button to be doubled or halved. Allowing for a martingale approach.
 - The Buy and Sell buttons will execute on the lot size selected.
 - This plugin is tailored for "USTEC", edit this string depending on which instrument you are trading with.
+- Sl and Tp are both in pips
 - Retry
   - If you get stopped out on your initial defense, the equity stop, you may choose to retry. However, once you reach the last chance threshold, no further retries are allowed for the rest of the session. You can resume trading once the cooldown period ends.
   - When clicked, the Profit Target will also be increased to account for what was lost.
