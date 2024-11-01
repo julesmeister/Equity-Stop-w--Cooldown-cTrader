@@ -14,7 +14,7 @@ namespace cAlgo.Plugins
         double equity, initialEquity, todaysRealizedGains, maxProfitThreshold, currentLotSize;
         ComboBox cashOrPerc, triggerComboBox, cooldownPeriodDropdown;
         CheckBox maxDDOn, maxProfitOn, finalMaxDDOn;
-        TextBox maxDD, maxProfit, finalMaxDD;
+        TextBox maxDD, maxProfit, finalMaxDD, tp, sl;
         private Button decreaseButtonMaxDD, increaseButtonMaxDD, decreaseButtonMaxProfit, increaseButtonMaxProfit, decreaseButtonFinalMaxDD, increaseButtonFinalMaxDD;
         private Button retryButton; // New Button for retrying trades
 
@@ -48,43 +48,43 @@ namespace cAlgo.Plugins
             UpdateControlsState(true); // Ensure controls are enabled on start
             RestoreCooldownState();
         }
-        
+
         private void OnPositionOpened(PositionOpenedEventArgs args)
         {
             var position = args.Position;
-        
+
             // Set stop loss and take profit if not already set
             if (position.StopLoss == null)
             {
                 position.ModifyStopLossPips(150);
                 position.ModifyTakeProfitPips(100);
             }
-        
+
             if (isAddingOrders) return; // Avoid recursion
-        
+
             // Get the currently selected lot size from the buttons
             double selectedLotSize = double.Parse(lotButtons.FirstOrDefault(btn => btn.BackgroundColor == Color.White)?.Text ?? "10");
-        
+
             // Check the opened position's lot size
             double openedLotSize = position.Quantity;
-        
+
             // Determine additional orders based on selected lot size
             int additionalOrders = (openedLotSize == 10) ? Math.Max((int)((selectedLotSize / 10) - 1), 0) : 0;
-        
+
             if (additionalOrders > 0)
             {
                 isAddingOrders = true; // Set the flag
                 Positions.Opened -= OnPositionOpened; // Temporarily unsubscribe
-        
+
                 // Open all additional orders at once
                 var totalVolume = position.Symbol.QuantityToVolumeInUnits(openedLotSize * additionalOrders);
-                ExecuteMarketOrder(position.TradeType, position.Symbol.ToString(), totalVolume, "New Orders", 100, 100);
-        
+                ExecuteMarketOrder(position.TradeType, position.Symbol.ToString(), totalVolume, "New Orders", double.Parse(sl.Text), double.Parse(tp.Text));
+
                 isAddingOrders = false; // Reset the flag
                 Positions.Opened += OnPositionOpened; // Re-subscribe
             }
         }
-        
+
         private void OnPositionClosed(PositionClosedEventArgs args)
         {
             if (triggerComboBox.SelectedItem == "Per Trade") equity = Account.Equity; // Reset equity to have more leeway for drawdown
@@ -98,7 +98,7 @@ namespace cAlgo.Plugins
             Positions.Closed -= OnPositionClosed;
             SaveState(tradingResumptionTime, GetCooldownPeriod());
         }
-        
+
         // Controls Start Here
         private void AddControls()
         {
@@ -106,14 +106,15 @@ namespace cAlgo.Plugins
             block.IsExpanded = true;
             block.IsDetachable = false;
             block.Index = 1;
-            block.Height = 400;
-        
+            block.Height = 440;
+
             var rootStackPanel = new StackPanel { Margin = new Thickness(10) };
             double comboBoxWidth = 80;
-            
+
             AddButtonSelectionGrid(rootStackPanel); // Multiplier
             InitializeLotButtons(); // Click Listeners
             X2Grid(rootStackPanel);
+            TpSlGrid(rootStackPanel);
             AddSelectionGrid(rootStackPanel, "Choose Between Cash and Percent:", ref cashOrPerc, new[] { "Cash", "Percent" }, comboBoxWidth); // Add Cash or Percent selection controls
             AddSelectionGrid(rootStackPanel, "Trigger:", ref triggerComboBox, new[] { "Per Trade", "Per Session" }, comboBoxWidth); // Add Trigger selection controls
             AddEquityStopGrid(rootStackPanel, "Equity Stop (Loss):", ref decreaseButtonMaxDD, ref increaseButtonMaxDD, ref maxDD, ref maxDDOn); // Add Equity Stop (Loss) controls
@@ -121,45 +122,45 @@ namespace cAlgo.Plugins
             AddEquityStopGrid(rootStackPanel, "Last Chance (Loss):", ref decreaseButtonFinalMaxDD, ref increaseButtonFinalMaxDD, ref finalMaxDD, ref finalMaxDDOn); // Add Last Chance (Loss) controls
             AddEquityStopGrid(rootStackPanel, "Equity Stop (Target):", ref decreaseButtonMaxProfit, ref increaseButtonMaxProfit, ref maxProfit, ref maxProfitOn); // Add Equity Stop (Target) controls
             AddCooldownControls(rootStackPanel, comboBoxWidth); // Add Cooldown controls
-        
+
             IncreaseDecreaseButtonListeners();
             block.Child = rootStackPanel;
         }
-        
+
         // Button Selection from 10 to 50 and functionalities
-        
+
         private void AddButtonSelectionGrid(StackPanel parent)
         {
             var grid = new Grid { Margin = new Thickness(5, 0, 5, 0) };
-        
+
             // Create 5 equal columns for buttons
             for (int i = 0; i < 6; i++) grid.AddColumn().SetWidthInStars(1); // Each button gets equal width
-        
+
             // Create buttons for lot sizes 10, 20, 30, 40, 50
             string[] lotSizes = { "10", "20", "30", "40", "50" };
-            
+
             // First Button For Martingale
-            lotButtons[0] = new Button{Text = currentLotSize.ToString(), BackgroundColor = Color.Black,Margin = new Thickness(5), Padding = new Thickness(10)};
+            lotButtons[0] = new Button { Text = currentLotSize.ToString(), BackgroundColor = Color.Black, Margin = new Thickness(5), Padding = new Thickness(10) };
             // Add button to the grid (1-row layout, button in ith column)
             grid.AddChild(lotButtons[0], 0, 0);
-        
+
             for (int i = 0; i < lotSizes.Length; i++)
             {
-                var button = new Button{Text = lotSizes[i],BackgroundColor = Color.Black,Margin = new Thickness(5),Padding = new Thickness(10),};
-                lotButtons[i+1] = button;
-        
+                var button = new Button { Text = lotSizes[i], BackgroundColor = Color.Black, Margin = new Thickness(5), Padding = new Thickness(10), };
+                lotButtons[i + 1] = button;
+
                 // Add button to the grid (1-row layout, button in ith column)
-                grid.AddChild(button, 0, i+1);
+                grid.AddChild(button, 0, i + 1);
             }
-            
+
             // Set the first button as selected by default
             lotButtons[1].BackgroundColor = Color.White; // Change background color to gray
             lotButtons[1].ForegroundColor = Color.Black; // Change border color to white
-        
+
             // Add grid to parent panel
             parent.AddChild(grid);
         }
-        
+
         private void InitializeLotButtons()
         {
             foreach (var button in lotButtons)
@@ -172,7 +173,7 @@ namespace cAlgo.Plugins
                         btn.BackgroundColor = Color.Black;
                         btn.ForegroundColor = Color.White;
                     }
-                    
+
                     // Set the style for the selected button
                     button.BackgroundColor = Color.White;
                     button.ForegroundColor = Color.Black;
@@ -180,13 +181,13 @@ namespace cAlgo.Plugins
             }
         }
 
-        
+
         // X2 Martingale Button and functionalities
-        
+
         private void X2Grid(StackPanel parent)
         {
             var grid = new Grid { Margin = new Thickness(10, 10, 10, 10) };
-        
+
             // Define columns for Sell, Spacer, -, Spacer, +, Spacer, Buy
             grid.AddColumn().SetWidthInStars(2); // Sell button
             grid.AddColumn().SetWidthInPixels(10); // Spacer
@@ -195,22 +196,22 @@ namespace cAlgo.Plugins
             grid.AddColumn().SetWidthInPixels(40); // Increase (+) button
             grid.AddColumn().SetWidthInPixels(10); // Spacer
             grid.AddColumn().SetWidthInStars(2); // Buy button
-        
+
             // Create Sell button
             var sellButton = SecondRowButton("Sell", Color.Red);
             var decreaseLotButton = SecondRowButton("-", Color.Black);
             var increaseLotButton = SecondRowButton("+", Color.Black);
             var buyButton = SecondRowButton("Buy", Color.Green);
-        
+
             // Add buttons to grid in the specified order
             grid.AddChild(sellButton, 0, 0); // Sell button
             grid.AddChild(decreaseLotButton, 0, 2); // Decrease (-) button
             grid.AddChild(increaseLotButton, 0, 4); // Increase (+) button
             grid.AddChild(buyButton, 0, 6); // Buy button
-        
+
             // Add grid to parent panel
             parent.AddChild(grid);
-        
+
             // Event handlers for adjusting lot size
             decreaseLotButton.Click += (e) =>
             {
@@ -218,19 +219,19 @@ namespace cAlgo.Plugins
                 currentLotSize = Math.Max(1, int.Parse(lotButtons[0].Text) / 2);
                 lotButtons[0].Text = currentLotSize.ToString();
             };
-        
+
             increaseLotButton.Click += (e) =>
             {
                 // Double the current lot size with a max limit of 32
                 currentLotSize = int.Parse(lotButtons[0].Text) * 2;
                 lotButtons[0].Text = currentLotSize.ToString();
             };
-        
+
             // Event handlers for Buy and Sell
             sellButton.Click += (e) => HandleTrade("Sell", double.Parse(lotButtons.FirstOrDefault(btn => btn.BackgroundColor == Color.White)?.Text ?? "10"));
             buyButton.Click += (e) => HandleTrade("Buy", double.Parse(lotButtons.FirstOrDefault(btn => btn.BackgroundColor == Color.White)?.Text ?? "10"));
         }
-        
+
         // Helper 2nd Row Buttons
         private Button SecondRowButton(string text, Color backgroundColor, double fontSize = 18)
         {
@@ -245,79 +246,106 @@ namespace cAlgo.Plugins
             };
         }
 
-        
+        // TP / SL Grid
+        private void TpSlGrid(StackPanel parent)
+        {
+
+            var grid = new Grid { Margin = new Thickness(10, 10, 10, 5) };
+
+            grid.AddColumn().SetWidthInStars(2); // Take Profit:
+            grid.AddColumn().SetWidthInStars(2); // TP
+            grid.AddColumn().SetWidthInPixels(20); // Spacer
+            grid.AddColumn().SetWidthInStars(2); // Stop Loss:
+            grid.AddColumn().SetWidthInStars(2); // SL
+
+            var style = new Style();
+            style.Set(ControlProperty.BackgroundColor, Color.FromArgb(26, 26, 26), ControlState.DarkTheme);
+            style.Set(ControlProperty.ForegroundColor, Color.FromArgb(255, 255, 255), ControlState.DarkTheme);
+            style.Set(ControlProperty.BackgroundColor, Color.FromArgb(231, 235, 237), ControlState.LightTheme);
+            style.Set(ControlProperty.ForegroundColor, Color.FromArgb(55, 56, 57), ControlState.LightTheme);
+
+            // Create TextBox for Take Profit (tp) and Stop Loss (sl)
+            tp = new TextBox { IsReadOnly = false, TextAlignment = TextAlignment.Right, Margin = new Thickness(0) };
+            tp.Style = style;
+            sl = new TextBox { IsReadOnly = false, TextAlignment = TextAlignment.Right, Margin = new Thickness(0) };
+            sl.Style = style;
+
+            // Add Take Profit and Stop Loss to second row
+            grid.AddChild(new TextBlock { Text = "Take Profit:", Margin = new Thickness(0, 2, 0, 0) }, 0, 0); // Label for TP
+            grid.AddChild(tp, 0, 1); // Take Profit TextBox
+            grid.AddChild(new TextBlock { Text = "Stop Loss:", Margin = new Thickness(0, 2, 0, 0) }, 0, 3); // Label for SL
+            grid.AddChild(sl, 0, 4); // Stop Loss TextBox
+
+            // Add grid to parent panel
+            parent.AddChild(grid);
+        }
+
+
         // Sample handler for Buy/Sell actions
         private void HandleTrade(string action, double lotSize)
         {
             string symbol = "USTEC"; // Replace with actual symbol if available
-            int sl = 100; // Define slippage value as needed
-            int tp = 100; // Define expiration value as needed
-            
-            ExecuteMarketOrder(action == "Buy" ? TradeType.Buy : TradeType.Sell, symbol, lotSize, "New Orders", sl, tp);
+            ExecuteMarketOrder(action == "Buy" ? TradeType.Buy : TradeType.Sell, symbol, lotSize, "New Orders", double.Parse(sl.Text), double.Parse(tp.Text));
         }
 
 
-        
+
         private void AddSelectionGrid(StackPanel parent, string label, ref ComboBox comboBox, string[] items, double width)
         {
             var grid = new Grid { Margin = new Thickness(10, 0, 10, 0) };
             grid.AddColumn().SetWidthInStars(1);
             grid.AddColumn().SetWidthToAuto();
-        
+
             var textBlock = new TextBlock { Text = label, Margin = new Thickness(0, 10, 10, 0) };
             grid.AddChild(textBlock, 0, 0);
-        
-            comboBox = new ComboBox { Margin = new Thickness(10, 10, 0, 10), Width = width};
+
+            comboBox = new ComboBox { Margin = new Thickness(10, 10, 0, 10), Width = width };
             foreach (var item in items) comboBox.AddItem(item);
-            
+
             grid.AddChild(comboBox, 0, 1);
-        
+
             parent.AddChild(grid);
         }
-        
+
         private void AddEquityStopGrid(StackPanel parent, string label, ref Button decreaseButton, ref Button increaseButton, ref TextBox textBox, ref CheckBox checkBox)
         {
             var grid = new Grid { Margin = new Thickness(10) };
-        
+
             // Define columns for Label, TextBox, "-", "+", and CheckBox
             grid.AddColumn().SetWidthToAuto(); // Label
             grid.AddColumn().SetWidthToAuto(); // "-" Button
             grid.AddColumn().SetWidthInPixels(5); // Spacer
             grid.AddColumn().SetWidthToAuto(); // "+" Button
-            grid.AddColumn().SetWidthInPixels(5); // Spacer
+            grid.AddColumn().SetWidthInPixels(10); // Spacer
             grid.AddColumn().SetWidthInStars(1); // TextBox
             grid.AddColumn().SetWidthToAuto(); // CheckBox
-        
+
             // Add Label
-            var textBlock = new TextBlock { Text = label, Margin = new Thickness(0, 3, 10, 0) };
+            var textBlock = new TextBlock { Text = label, Margin = new Thickness(0, 4, 10, 0) };
             grid.AddChild(textBlock, 0, 0);
-        
-            
-        
+
+
+
             // Add "-" Button
             decreaseButton = new Button
             {
                 Text = "-",
-                BackgroundColor = Color.Black,
-                ForegroundColor = Color.White,
                 Padding = new Thickness(6, 0, 6, 5),
                 FontSize = 16
             };
-            
+
             grid.AddChild(decreaseButton, 0, 1);
-        
+
             // Add "+" Button
             increaseButton = new Button
             {
                 Text = "+",
-                BackgroundColor = Color.Black,
-                ForegroundColor = Color.White,
                 Padding = new Thickness(5, 0, 5, 2),
                 FontSize = 16
             };
-            
+
             grid.AddChild(increaseButton, 0, 3);
-            
+
             // Add TextBox
             textBox = new TextBox { IsReadOnly = false, TextAlignment = TextAlignment.Right };
             var style = new Style();
@@ -327,14 +355,14 @@ namespace cAlgo.Plugins
             style.Set(ControlProperty.ForegroundColor, Color.FromArgb(55, 56, 57), ControlState.LightTheme);
             textBox.Style = style;
             grid.AddChild(textBox, 0, 5);
-        
+
             // Add CheckBox
             checkBox = new CheckBox { Margin = new Thickness(10, 0, 0, 0) };
             grid.AddChild(checkBox, 0, 6);
-        
+
             parent.AddChild(grid);
         }
-        
+
         private void IncreaseDecreaseButtonListeners()
         {
             // Configure decrease and increase button listeners for maxDD
@@ -346,7 +374,7 @@ namespace cAlgo.Plugins
                     maxDD.Text = currentValue.ToString("0.##");
                 }
             };
-        
+
             increaseButtonMaxDD.Click += (e) =>
             {
                 if (double.TryParse(maxDD.Text, out double currentValue))
@@ -355,7 +383,7 @@ namespace cAlgo.Plugins
                     maxDD.Text = currentValue.ToString("0.##");
                 }
             };
-        
+
             // Configure decrease and increase button listeners for maxProfit
             decreaseButtonMaxProfit.Click += (e) =>
             {
@@ -365,7 +393,7 @@ namespace cAlgo.Plugins
                     maxProfit.Text = currentValue.ToString("0.##");
                 }
             };
-        
+
             increaseButtonMaxProfit.Click += (e) =>
             {
                 if (double.TryParse(maxProfit.Text, out double currentValue))
@@ -374,7 +402,7 @@ namespace cAlgo.Plugins
                     maxProfit.Text = currentValue.ToString("0.##");
                 }
             };
-        
+
             // Configure decrease and increase button listeners for finalMaxDD
             decreaseButtonFinalMaxDD.Click += (e) =>
             {
@@ -384,7 +412,7 @@ namespace cAlgo.Plugins
                     finalMaxDD.Text = currentValue.ToString("0.##");
                 }
             };
-        
+
             increaseButtonFinalMaxDD.Click += (e) =>
             {
                 if (double.TryParse(finalMaxDD.Text, out double currentValue))
@@ -394,44 +422,44 @@ namespace cAlgo.Plugins
                 }
             };
         }
-        
+
         private void AddRetryButton(StackPanel parent)
         {
             var grid = new Grid { Margin = new Thickness(10) };
             grid.AddColumn().SetWidthInStars(1);
-        
+
             retryButton = new Button { Text = "Retry", IsEnabled = false };
             retryButton.Click += (e) =>
             {
                 retryButton.IsEnabled = false;
                 isFirstMaxDDTriggered = true;
-                
+
                 equity = Account.Equity; // Reset equity to have more leeway for drawdown
                 EndCooldown(retryInduced: true);
             };
-        
+
             grid.AddChild(retryButton, 0, 0);
             parent.AddChild(grid);
         }
-        
-        
+
+
         private void AddCooldownControls(StackPanel parent, double comboBoxWidth)
         {
             var grid = new Grid { Margin = new Thickness(10) };
             grid.AddColumn().SetWidthInStars(1);
             grid.AddColumn().SetWidthToAuto();
-        
+
             cooldownPeriodDropdown = new ComboBox { Margin = new Thickness(10, 0, 0, 10), Width = comboBoxWidth };
             cooldownPeriodDropdown.AddItem("2 minutes");
             cooldownPeriodDropdown.AddItem("2 hours");
             cooldownPeriodDropdown.AddItem("5 hours");
             cooldownPeriodDropdown.AddItem("12 hours");
-        
-            countdownText = new TextBlock{ Text = "Cooldown Timer: 00:00:00",Margin = new Thickness(0, 0, 10, 10), HorizontalAlignment = HorizontalAlignment.Left};
-        
+
+            countdownText = new TextBlock { Text = "Cooldown Timer: 00:00:00", Margin = new Thickness(0, 0, 10, 10), HorizontalAlignment = HorizontalAlignment.Left };
+
             grid.AddChild(countdownText, 0, 0);
             grid.AddChild(cooldownPeriodDropdown, 0, 1);
-        
+
             parent.AddChild(grid);
         }
         //  Controls End Here
@@ -440,6 +468,8 @@ namespace cAlgo.Plugins
         {
             LocalStorage.SetString(CooldownTimestampKey, timestamp.ToString("o"));
             LocalStorage.SetString(CooldownPeriodKey, cooldownPeriod.ToString());
+            LocalStorage.SetString("SL", sl.Text);
+            LocalStorage.SetString("TP", tp.Text);
             LocalStorage.SetString("MaxDDOn", maxDDOn.IsChecked.ToString());
             LocalStorage.SetString("MaxDD", maxDD.Text);
             LocalStorage.SetString("finalMaxDDOn", finalMaxDDOn.IsChecked.ToString());
@@ -456,6 +486,8 @@ namespace cAlgo.Plugins
         {
             string storedTimestamp = LocalStorage.GetString(CooldownTimestampKey);
             string storedPeriod = LocalStorage.GetString(CooldownPeriodKey);
+            string storedTp = LocalStorage.GetString("TP");
+            string storedSl = LocalStorage.GetString("SL");
             string storedMaxDDOn = LocalStorage.GetString("MaxDDOn");
             string storedMaxDD = LocalStorage.GetString("MaxDD");
             string finalMaxDDOnStored = LocalStorage.GetString("finalMaxDDOn");
@@ -465,7 +497,11 @@ namespace cAlgo.Plugins
             string storedTriggerOption = LocalStorage.GetString("TriggerOption");
             string storedIsFirstMaxDDTriggered = LocalStorage.GetString("isFirstMaxDDTriggered");
             string storedIsFinalMaxDDTriggered = LocalStorage.GetString("isFinalMaxDDTriggered");
-            
+
+            if (!string.IsNullOrEmpty(storedTp)) tp.Text = storedTp;
+
+            if (!string.IsNullOrEmpty(storedSl)) sl.Text = storedSl;
+
             if (!string.IsNullOrEmpty(storedMaxDDOn)) maxDDOn.IsChecked = bool.Parse(storedMaxDDOn);
 
             if (!string.IsNullOrEmpty(storedMaxDD)) maxDD.Text = storedMaxDD;
@@ -477,16 +513,16 @@ namespace cAlgo.Plugins
             if (!string.IsNullOrEmpty(finalMaxDDStoredValue)) finalMaxDD.Text = finalMaxDDStoredValue;
 
             todaysRealizedGains = History.Where(pos => pos.ClosingTime >= DateTime.Today).Sum(pos => pos.GrossProfit); // Sum up the gross profits
-            maxProfit.Text = todaysRealizedGains < 0 
-                                ? (initialEquity + 66 + todaysRealizedGains).ToString() 
+            maxProfit.Text = todaysRealizedGains < 0
+                                ? (initialEquity + 66 + todaysRealizedGains).ToString()
                                 : (initialEquity + 66).ToString(); // Initialize maxProfit to AccountEquity + 300
 
             if (!string.IsNullOrEmpty(storedCooldownPeriod)) cooldownPeriodDropdown.SelectedItem = storedCooldownPeriod;
 
             if (!string.IsNullOrEmpty(storedTriggerOption)) triggerComboBox.SelectedItem = storedTriggerOption;
-            
+
             if (!string.IsNullOrEmpty(storedIsFirstMaxDDTriggered)) isFirstMaxDDTriggered = bool.Parse(storedIsFirstMaxDDTriggered);
-        
+
             if (!string.IsNullOrEmpty(storedIsFinalMaxDDTriggered)) isFinalMaxDDTriggered = bool.Parse(storedIsFinalMaxDDTriggered);
 
             if (!string.IsNullOrEmpty(storedTimestamp) && !string.IsNullOrEmpty(storedPeriod))
@@ -506,10 +542,11 @@ namespace cAlgo.Plugins
                     if (remainingTime > TimeSpan.Zero)
                     {
                         bool resetCoolDown = false;
-                        tradingResumptionTime = resetCoolDown ?  DateTime.UtcNow : expectedResumptionTime;
+                        tradingResumptionTime = resetCoolDown ? DateTime.UtcNow : expectedResumptionTime;
                         isCooldownInProgress = true;
                     }
-                    else {
+                    else
+                    {
                         // No more cooldown, decide if maxProfitOn should be disabled or not
                         EndCooldown();
                     } // If the cooldown period has already passed
@@ -529,7 +566,7 @@ namespace cAlgo.Plugins
             countdownText.Text = "Cooldown Timer: 00:00:00";
             isCooldownInProgress = isFinalMaxDDTriggered = false; // Reset second maxDD flag
             if (retryInduced == false) isFirstMaxDDTriggered = false; // Reset first maxDD flag if not caused by retry button
-            
+
             UpdateControlsState(true);
 
             LocalStorage.SetString(CooldownTimestampKey, string.Empty);
@@ -561,7 +598,7 @@ namespace cAlgo.Plugins
                     UpdateControlsState(false); // Disable controls during cooldown
                 }
                 else EndCooldown(); // End the cooldown if the current time has passed the trading resumption time
-                
+
                 // Iterate over all open positions while still in cooldown
                 foreach (var pos in Positions)
                 {
@@ -580,7 +617,7 @@ namespace cAlgo.Plugins
             // Normal trading logic
             HandleTriggerConditions();
         }
-        
+
         // Function to handle conditions based on Cash or Percent selection
         private void HandleTriggerConditions()
         {
@@ -601,7 +638,7 @@ namespace cAlgo.Plugins
                 retryButton.IsEnabled = false;
                 isFirstMaxDDTriggered = isFinalMaxDDTriggered = false;
             }
-            
+
             if (triggerCooldown) StopTradingAndSetCooldown();
         }
 
