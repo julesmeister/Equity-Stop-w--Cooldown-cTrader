@@ -1,36 +1,66 @@
-# A Modification of [Acronew's Equity Stop](https://ctrader.com/algos/show/4339/)
+# Enhanced Equity Stop with Cooldown for cTrader
+> A sophisticated modification of [Acronew's Equity Stop](https://ctrader.com/algos/show/4339/) with advanced features and improved UI.
 
-![alt text](equity-stop-order-sl.png)
+![Trading Interface](equity-stop-order-sl.png)
 
-Removed "Reset Equity" button.
-Rearranged the form to make related components stay in the same row as opposed to several columns which take up space.
+## Overview
+This enhanced version offers a streamlined interface with consolidated components and additional features for better trade management. The UI has been optimized by grouping related components together, resulting in a more efficient use of space.
 
-New:
-- Auto Stop Loss & Take Profit
-  - There is an automatic stop loss of 150 pips and take profit of about 100 pics when you enter on a trade. This happens when you did not tick the box of stop loss and take profit.
-  - As you are in the trade, you may drag the stop loss and take profit to your desired level.
-- Multiplier
-  - Can now multiply new position with the buttons 10, 20, 30, 40, & 50. When you select 50 and your base lot size is 10, an additional market order of 40 lots will be created.
-- The decrease and increase button allows the first lot size button to be doubled or halved. Allowing for a martingale approach.
-- The Buy and Sell buttons will execute on the lot size selected.
-- This plugin is tailored for "USTEC", edit this string depending on which instrument you are trading with.
-- Sl and Tp are both in pips
-- Retry
-  - If you get stopped out on your initial defense, the equity stop, you may choose to retry. However, once you reach the last chance threshold, no further retries are allowed for the rest of the session. You can resume trading once the cooldown period ends.
-  - When clicked, the Profit Target will also be increased to account for what was lost.
-- Cooldown Timer
-  - Allows to select how long cooldown would last.
-  - Automatically closes active trades while cooling down to prevent further trades.
-  - Is only triggered when equity stop of either loss or target.
-  - The cooldown timer will persist even if you close the app. It will count the timer correctly even when you reopen cTrader.
-  - Settings will also be saved.
-- Trigger (Both triggers cooldown)
-  - Per Trade
-    - Equity stops will be triggered per trade. If your Equity Stop input is 20, and your profit goes -20, you will get stopped out.
-    - Scenario:
-      - You set your Equity Stop to 20. You place a trade aiming for a profit, but the market moves against you, and you experience a loss of 25 on this single trade. Because this single trade loss exceeds your Equity Stop input of 20, the system halts trading and initiates a cooldown period. During this cooldown, no new trades can be executed, regardless of the outcome of other trades or any accumulated losses. Trading can resume after cooldown.
-  - Per Session
-    - This setting monitors the cumulative results of all trades within a session. If the total losses from all trades during the session reach or exceed the Equity Stop input, the system stops trading and activates the cooldown. No further trades can be placed during that session once the equity stop is triggered.
-    - Scenario:
-      -  You place multiple trades in a session. The first trade loses 10, the second loses 5, and the third loses 7, totaling 22 in losses. If your Equity Stop input is 20, the system will check the overall sum of PnL for the session, not just the losses. If the total sum of PnL (including any profits) goes below the Equity Stop input threshold, the system will stop trading for the rest of the session and trigger the cooldown.
-     -  Bug: During a cooldown period, trading is completely halted for the entire session, and you cannot place any orders. When the cooldown period ends, it erroneously restarts the countdown, preventing you from resuming trades until the cooldown finishes again. To place orders, you need to start a new session. Once the cooldown period is complete in the new session, it will not restart, and you can resume trading as usual.
+## Key Features
+
+### 🎯 Automated Risk Management
+- **Auto Stop Loss & Take Profit**
+  - Default protective measures: 150 pips stop loss and 100 pips take profit
+  - Configurable: Can be adjusted by dragging to desired levels during active trades
+  - Optional: Can be disabled via checkbox
+
+### 💹 Position Management
+- **Dynamic Position Sizing**
+  - Multiplier buttons: 10x, 20x, 30x, 40x, 50x
+  - Example: With base lot size 10 and 50x multiplier, creates additional 40 lots market order
+  - Increase/Decrease buttons for base lot size (supports martingale strategy)
+  - Direct Buy/Sell execution at selected lot size
+
+### 🔄 Retry Mechanism
+- Allows re-entry after initial equity stop loss
+- Automatically adjusts profit target to account for previous losses
+- Trading restricted once last chance threshold is reached
+- Trading resumes after cooldown period
+
+### ⏲️ Cooldown System
+- **Features**
+  - Customizable cooldown duration
+  - Automatic closure of active trades during cooldown
+  - Persistent timer (continues even after application restart)
+  - Saved settings across sessions
+  - Triggered by equity stop (loss or target)
+
+### 🎚️ Trigger Modes
+
+#### 1. Per Trade Mode
+- Individual trade monitoring
+- Triggers when single trade loss exceeds equity stop value
+- **Example Scenario:**
+  - Equity Stop: 20
+  - Single trade loss: 25
+  - Result: Triggers cooldown, halts trading
+
+#### 2. Per Session Mode
+- Monitors cumulative session performance
+- Considers total PnL across all trades
+- **Example Scenario:**
+  - Multiple trades: -10, -5, -7 (Total: -22)
+  - Equity Stop: 20
+  - Result: Triggers cooldown when total PnL exceeds threshold
+
+## Technical Notes
+- Optimized for "USTEC" instrument (configurable)
+- Stop Loss and Take Profit measured in pips
+- Settings persistence across sessions
+
+## Known Issues
+**Cooldown Reset Bug:**
+- During cooldown: Trading halted for entire session
+- Issue: Timer incorrectly restarts after completion
+- Workaround: Start new session after cooldown
+- Resolution: Timer functions normally in new session
